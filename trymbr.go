@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"encoding/hex"
-	"crypto/aes"
+	"crypto/des"
 )
 
 const keyblockoff = 1000202059776
@@ -13,7 +13,8 @@ const mbroff = 0
 const blocksize = 512
 //const keysize = 16		// AES-128
 //const keysize = 24		// AES-192
-const keysize = 32		// AES-256
+//const keysize = 32		// AES-256
+const keysize = 8			// DES
 
 const firstPotentialOff = 0x50
 const lastPotentialOff = blocksize
@@ -53,7 +54,7 @@ func main() {
 
 	for i := firstPotentialOff; i + keysize <= lastPotentialOff; i++ {
 		key := keyblock[i:i + keysize]
-		cipher, err := aes.NewCipher(key)
+		cipher, err := des.NewCipher(key)
 		if err != nil {
 			panic(err)
 		}
