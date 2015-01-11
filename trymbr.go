@@ -58,7 +58,7 @@ func main() {
 			panic(err)
 		}
 		cbs := cipher.BlockSize()
-		if blocksize % cbs != 0 {
+		if (lastPotentialOff - firstPotentialOff) % cbs != 0 {
 			panic("uneven blocks")
 		}
 		for j := 0; j < blocksize; j += cbs {
