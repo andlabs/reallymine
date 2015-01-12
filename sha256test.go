@@ -8,24 +8,27 @@ import (
 
 func brokensum(b []byte) []byte {
 	h := sha256.New()
-	// TODO actually implement the brokenness
-/*	// TODO see if this is right
-	if len(b) > 32 {
-		first := b[:32]
-		last := b[len(b) - 32:]
-		for i := 0; i < len(b) >> 9; i++ {
-			h,Write(first)
+	if len(b) > 64 {
+		first := b[:64]
+		last := b[len(b) - (len(b) % 64):]
+		// oops, this is really what Unlock.exe does
+		// the memcpy() that copies from b into the blocking buffer is only run once, outside the loop
+		// and since the blocking function doesn't overwrite the blocking buffer...
+		l := len(b)
+		for l > 64 {
+			h.Write(first)
+			l -= 64
 		}
 		h.Write(last)
 	} else {
-*/
 		h.Write(b)
-//	}
+	}
 	return h.Sum(nil)
 }
 
 func main() {
-	p := make([]byte, 0, 0)
+	p := make([]byte, 64+64+32, 64+64+32)
+	p[64+12] = 4
 	s := brokensum(p)
 	i := 999
 	for {
