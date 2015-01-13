@@ -17,7 +17,7 @@ It didn't take much Googling to confirm what I subsequently suspected.
 ## The Facts
 Several families of Western Digital MyBooks (and the portable equivalents, MyPassports), as well as several rebranded versions of such (some by HP, for instance), have mandatory, transparent, full-disk encryption. The encryption is performed by a chip on the USB-SATA bridge board.
 
-The encryption is known to be standard AES-128, with no additional block ciphers (ECB). The chips vary between drives. In some cases, swapping disks between drives of the same model does work to decrypt the data, but this is not always the case.
+The encryption is known to be standard AES-128, with no additional block ciphers (ECB). The chips vary between drives. In some cases, swapping disks between cases/bridge boards of the same model does work to decrypt the data, but this is not always the case.
 
 The encryption chip also chops off the upper portion of the disk (or so). This portion, whose size I am not sure about, is the source of the WD files I mentioned earlier: it is actually a CD image that the bridge chip firmware exposes to the host OS (Windows or OS X) as a regular CD. The CD normally contains the program which unlocks the HDD if you gave it a password using the WD SmartWare utility (which is NOT the same thing as a regular ATA password).
 
