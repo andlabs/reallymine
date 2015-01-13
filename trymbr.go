@@ -4,12 +4,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"io"
 	"encoding/hex"
 	"crypto/aes"
 )
 
-const keyblockoff = 1000202059776
-const mbroff = 0
 const blocksize = 512
 const keysize = 16		// AES-128
 //const keysize = 24		// AES-192
@@ -24,31 +23,23 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
-
-	_, err = f.Seek(keyblockoff, 0)
-	if err != nil {
-		panic(err)
-	}
 	keyblock := make([]byte, blocksize)
-	n, err := f.Read(keyblock)
+	_, err = io.ReadFull(f, keyblock)
 	if err != nil {
 		panic(err)
-	} else if n != blocksize {
-		panic(n)
 	}
+	f.Close()
 
-	_, err = f.Seek(mbroff, 0)
+	f, err = os.Open(os.Args[2])
 	if err != nil {
 		panic(err)
 	}
 	mbr := make([]byte, blocksize)
-	n, err = f.Read(mbr)
+	_, err = io.ReadFull(f, mbr)
 	if err != nil {
 		panic(err)
-	} else if n != blocksize {
-		panic(n)
 	}
+	f.Close()
 
 	mbrout := make([]byte, blocksize)
 
