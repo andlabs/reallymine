@@ -1,4 +1,4 @@
-# The Story
+## The Story
 I have two 1TB Western Digital MyBooks.
 
 * Drive A, from sometime between 2009 and 2011
@@ -30,7 +30,7 @@ So how is it stored?
 
 I don't know. The only people who do know seem to be so-called "data recovery experts", who have [chosen not to reveal this information](http://forum.hddguru.com/viewtopic.php?t=21584) [lest it hurt their business](http://forum.hddguru.com/viewtopic.php?t=24567&f=1&start=0#p165906). **Bullshit**. I'm not trusting my data to strangers.
 
-As a result, this project is licensed under the GPL version 3. You should be the one who owns your data, not other people. (In fact I'm wondering if this whole encryption thing is solely in place for their benefit.) It's also appaliing that there is only one website on the entire Internet dedicated to cracking this nut.
+As a result, this project is licensed under the GPL version 3. You should be the one who owns your data, not other people. (In fact I'm wondering if this whole encryption thing is solely in place for their benefit.) It's also appalling that there is only one website on the entire Internet dedicated to cracking this nut.
 
 [This is not an unsolved problem; there are commercial utilities that can do what I am aiming to do here.](http://www.acelaboratory.com/news/newsitem.php?itemid=115) [Someone else has posted an encryption key from another peron's drive](http://forum.hddguru.com/viewtopic.php?t=19408&f=1&start=40&#p136073) [given only these screenshots of the key sector](http://forum.hddguru.com/viewtopic.php?t=19408&f=1&start=0#p131488). (A post on the third link indicates that the bridge chips appear to be Intel 8051 derivatives.)
 
