@@ -36,6 +36,10 @@ As a result, this project is licensed under the GPL version 3. You should be the
 
 I have attempted to reverse-engineer Unlock.exe. So far, I figured out that the SmartWare password is salted and hashed with a buggy implementation of SHA-256. I do not know what the salt is, but it is related to the drive being passworded. I do not think this will help figure out the encryption key.
 
+The OS X equivalent of Unlock.exe is a bit more open: the salt and iteration count seem to be more variable and the default salt appears to be `WDC.`. No idea if this is a guarantee. No idea if the Windows version writes this as a UTF-8 or as a UTF-16 string. Still don't think this is related, even though the OS X version talks about encryption a lot.
+
+Of note: the OS X equivalent of Unlock.exe, which is not stripped by virtue of the design of the Objective-C runtime, calls the block with the password hint the "handy store security block" and begins with the byte sequence `00 01 44 57` (the last two bytes being `WD` in reverse).
+
 I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; this appears to be before WD started encrypting the drives, as there don't seem to be AES constants in the firmware (though I might not be looking hard enough). I am currently up to trying to find newer firmware versions.
 
 ## Contributions
