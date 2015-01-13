@@ -49,3 +49,5 @@ I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; th
 - drives that use one specific vendor's bridge chip have an entirely different format for this sector; TODO
 - get info about Drive A's bridge chip; I still have it and it still works
 	- find Drive B's bridge chip; no idea if it can be salvaged but I still have it somewhere around here
+- get the model number from Drive A's case
+	- Drive B's case might be lost, however...
