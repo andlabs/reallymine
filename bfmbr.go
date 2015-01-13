@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"io"
 	"crypto/aes"
 	"bytes"
 )
@@ -23,31 +24,25 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
-
-	_, err = f.Seek(keyblockoff, 0)
-	if err != nil {
-		panic(err)
-	}
 	keyblock := make([]byte, blocksize)
-	n, err := f.Read(keyblock)
+	_, err = io.ReadFull(f, keyblock)
 	if err != nil {
 		panic(err)
-	} else if n != blocksize {
-		panic(n)
 	}
+	f.Close()
 
-	_, err = f.Seek(mbroff, 0)
+	f, err = os.Open(os.Args[2])
 	if err != nil {
 		panic(err)
 	}
 	mbr := make([]byte, blocksize)
-	n, err = f.Read(mbr)
+	_, err = io.ReadFull(f, mbr)
 	if err != nil {
 		panic(err)
-	} else if n != blocksize {
-		panic(n)
 	}
+	f.Close()
+
+	lookfor := []byte(os.Args[3])
 
 	mbrout := make([]byte, blocksize)
 
@@ -63,7 +58,7 @@ func main() {
 		for j := 0; j < blocksize; j += cbs {
 			cipher.Decrypt(mbrout[j:], mbr[j:])
 		}
-		if bytes.Contains(mbrout, []byte("pera")) {
+		if bytes.Contains(mbrout, lookfor) {
 			fmt.Printf("%x ", key)
 			fmt.Printf(xfmt, xargs...)
 			fmt.Printf("\n")
