@@ -19,7 +19,7 @@ Several families of Western Digital MyBooks (and the portable equivalents, MyPas
 
 The encryption is known to be standard AES-128, with no additional block ciphers (ECB). The chips vary between drives. In some cases, swapping disks between cases/bridge boards of the same model does work to decrypt the data, but this is not always the case.
 
-The encryption chip also chops off the upper portion of the disk (or so). This portion, whose size I am not sure about, is the source of the WD files I mentioned earlier: it is actually a CD image that the bridge chip firmware exposes to the host OS (Windows or OS X) as a regular CD. The CD normally contains the program which unlocks the HDD if you gave it a password using the WD SmartWare utility (which is NOT the same thing as a regular ATA password).
+The encryption chip also chops off the upper portion of the disk (or so). This portion, whose size I am not sure about, is the source of the WD files I mentioned earlier: it is actually a CD image that the bridge chip firmware exposes to the host OS (Windows or OS X) as a regular CD. The CD normally contains the program which unlocks the HDD if you gave it a password using the WD SmartWare utility (which is NOT the same thing as a regular ATA password). I do not think the password has any bearing on encryption (and the drive is still encrypted even without a password).
 
 As it turns out, the encryption key isn't necessarily stored on the bridge chip. Instead, it's stored in two places: a "module" of the drive's "system area" (I don't know what this means, nor can I yet find a Linux utility that examines this - TODO) and as a backup in a sector near the end of the drive. This "key sector" contains several bits of information (notably the size of the drive that the bridge chip exposes).
 
@@ -47,3 +47,5 @@ I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; th
 	- confirm if MyPassport is affected /in exactly the same way/ and update the description of this repo
 - my Drive A has two sectors that begin with `WD`, the key sector and some other, and neither of them use `WDv1`
 - drives that use one specific vendor's bridge chip have an entirely different format for this sector; TODO
+- get info about Drive A's bridge chip; I still have it and it still works
+	- find Drive B's bridge chip; no idea if it can be salvaged but I still have it somewhere around here
