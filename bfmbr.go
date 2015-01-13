@@ -9,12 +9,10 @@ import (
 	"bytes"
 )
 
-const keyblockoff = 1000202059776
-const mbroff = 0
 const blocksize = 512
-//const keysize = 16		// AES-128
+const keysize = 16		// AES-128
 //const keysize = 24		// AES-192
-const keysize = 32		// AES-256
+//const keysize = 32		// AES-256
 //const keysize = 8			// DES
 
 const firstPotentialOff = 0//0x50
