@@ -21,6 +21,7 @@ start      end         purpose
 0x00000000 0x3FFFFFFF? code
 0x40000000 0x7FFFFFFF? unknown (hardware registers?)
 0x80000000 ??????????  RAM
+	(TODO is the RAM size 0x4000 bytes? stack is near that location)
 ```
 
 If you're going to go at this with IDA, here are some tips:
@@ -37,3 +38,7 @@ loc_nearby
 ```
 with the usual IDA comment fluff.
 - Sometimes, IDA won't disassemble a subroutine called this way (or through one of the various jump tables). You will need to select its byte and the byte prior (remember, this is THUMB), press `c`, and choose Force from the confirmation dialog to get it to work. Fortunately, these functions are simple, but at least one seems to be vital (having the USB product ID!).
+
+Known RAM addresses for jumping:
+
+(TODO)
