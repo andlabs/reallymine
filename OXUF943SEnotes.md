@@ -42,3 +42,42 @@ with the usual IDA comment fluff.
 Known RAM addresses for jumping:
 
 (TODO)
+
+## Attempts at figuring out how/where USB input is processed
+
+```
+code for filling in device descriptor - first entry of list 0x3AF78
+which is a jump table called near the beginning of the (very long) function 0x13794
+turns out this is the function to handle GET_DESCRIPTOR
+the jump table is for the various high bytes of the wValue
+argument R0 to this function holds a pointer to the location of the input buffer ([R0] is the address of the input buffer itself)
+
+this is called from 0x13CB8, which is responsible for handling standard USB requests
+again, argument R0 holds a pointer to the location of the input buffer
+
+this is called from 0x10C2C (specifically at 0x10CAC)
+it turns out this function locally allocates room for the buffer, giving 0x24 bytes of its stack and starting the buffer at offset 0x1C
+which appears to be copied from R0 (input) + 0x14...?
+
+with R0 pointing directly to the input buffer, 0x15BC8 extracts the two request type bits (byte 0 bits 5 and 6)
+likewise 0x15BD0 handles the recipient (byte 0 bits 0-4)
+
+0xF7C0 seems to be the routine that handles class requests /to the interface/ /for specific requests only/
+likewise, 0x12B64 seems to be the routine that handles vendor-specific requests
+
+now for 0xF7C0 requests:
+- 0xF86E - BBB Get Max LUN (0xFE)
+- 0xF7EE - BBB Reset (0xFF)
+
+I'll run under the assumption that the MyBooks are literally bulk-only devices and thus follow the [Bulk-Only Specification](http://www.usb.org/developers/docs/devclass_docs/usbmassbulk_10.pdf).
+
+There is only one instance of the BBB CBW signature, at 0xFCF4.
+It is loaded at 0xFB64, with the value to compare with coming immediately prior.
+The code goes all over the place after checking structure integrity, but it eventually stores the read/write flag in several places (and in several ways?) and copies the command bytes in the loop starting at 0xFC3A.
+
+Two CSW signatures:
+first is at 0xF05C; loaded at 0xEF72
+second is at 0x105FC; loaded at 0x10548
+the former seems to only be used for failures
+the latter /might/ be the general purpose case?
+```
