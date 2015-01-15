@@ -38,6 +38,7 @@ loc_nearby
 ```
 with the usual IDA comment fluff.
 - Sometimes, IDA won't disassemble a subroutine called this way (or through one of the various jump tables). You will need to select its byte and the byte prior (remember, this is THUMB), press `c`, and choose Force from the confirmation dialog to get it to work. Fortunately, these functions are simple, but at least one seems to be vital (having the USB product ID!).
+- Don't read the YY in `[SP,#0xNN+var_YY]` as increasing; these are actually negative numbers. To get a better idea of how local variables are laid out, press `q` over the `var_YY` to turn it back into the actual offset from `SP` (which doubles as a frame pointer).
 
 Known RAM addresses for jumping:
 
@@ -80,4 +81,17 @@ first is at 0xF05C; loaded at 0xEF72
 second is at 0x105FC; loaded at 0x10548
 the former seems to only be used for failures
 the latter /might/ be the general purpose case?
+
+anyway...
+0x10C2C is called at 0x1071C (through one of those `BL`/`BX` things mentioned above)
+this is part of function 0x1060C... yet again using R0
+THANKFULLY this is where our journey ends, as this function is called (at 0x38312) with R0 set to 0x800004B0
+this setting is done by the function 0x10A40 (which only sets R0 and nothing else)
+the offset 0x14 mentioned earlier appears to be a pointer to the buffer
+0x80001380 + 0x19 appears to be a flag that indicates whether or not we should actually do the processing...
+the flag is set at 0x24686 to the low byte of R0 passed to function 0x24648 (after some more complex logic)
+
+0x46000000 might be the location of the USB communication ports
+0x1B8B0 might be the function that actually performs reading
+0x1B854 might be the function that actually performs writing
 ```
