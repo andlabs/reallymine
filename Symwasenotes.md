@@ -21,9 +21,9 @@ This is NOT a 68000 boot ROM; it appears to be loaded at $4000000. Addresses beg
 	link	a6,#nn
 	...
 	unlk	a6
-	ret
+	rts
 ```
-(`4E75` is the `ret`.)
+(`4E75` is the `rts`.)
 
 The code to handle a CBW is at the function at ~$400CDCA; it checks one character at a time for some reason. The firmware seems to /expect/
 - up to 16 CBW command bytes, copied elsewhere for processing unconditionally after parsing the CBW structure
