@@ -41,6 +41,30 @@ I do not see either a CBW or a CSW signature in here, at least not directly...
 
 The function at ~0x5217 sets `DPTR` to whatever's at RAM 0x409C and then checks `DPTR` and `DPTR+0x5C` to see if they match `WDv1`. It then checks a few other things that I don't know about... (checksum of just the first 0x58 bytes?)
 
+```
+KEY SECTOR STRUCTURE
+Offset	Size	What		RAM		Code
+CHUNK 0 - HEADER (0x60 BYTES)
+0		4		WDv1		0x3206	[TODO]
+4		2		checksum	0x320A	[TODO]
+...
+0x5C	4		WDv1		0x3262	[TODO]
+CHUNK 1 - SOMETHING ELSE (0xXXX(0x30?0x90?) BYTES)
+0x60	4		WDq1		0x3266	~0x543B
+0x64
+0x68	0x10	????		0x326E	[TODO]
+0x68	2		checksum	0x326E	[TODO] WTF?
+...
+[CHUNK 2?]
+0x90	4		WDqe		0x3296	[TODO]
+```
+
+The function at ~0x457F is memset. R6:R7 is the destination, R5 is the byte to fill with, and R3 is the number of bytes.
+
+At ~0xC547 are three sets of suspicious 16-byte blocks...
+
+Checks for `WDq1` at 0x3C00 are at ~0x5164, ~0x5194, ~0x5300, and ~0x5390.
+
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
 - 0x1BBC - compare R0 to R4, R1 to R5, R2 to R6, R3 to R7
@@ -48,3 +72,6 @@ I believe these are provided by the boot ROM; if they are actually in RAM and co
 	- R6:R7 - (TODO source or destination? initial observation suggested source but after seeing random register assignment order I'm not sure)
 	- R4:R5 - (TODO opposite of above)
 	- R3 - length (bytes)
+	- Is 0x2B6C the same, but for copying from code memory?
+
+TODO could 0x329F be related to disk transfers — or worse, to encryption?
