@@ -94,4 +94,6 @@ the flag is set at 0x24686 to the low byte of R0 passed to function 0x24648 (aft
 0x46000000 might be the location of the USB communication ports
 0x1B8B0 might be the function that actually performs reading
 0x1B854 might be the function that actually performs writing
+
+the incredibly massive function starting at 0xF9E8 seems to be responsible for ALL bulk transfers; it has the CBW and latter CSW code in it, for instance
 ```
