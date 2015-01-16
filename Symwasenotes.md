@@ -16,7 +16,7 @@ Examining hexdumps of the firmwares almost immediately pointed me toward somethi
 
 In reality it's of the 68020-and-newer variety with more features. Also it wasn't really that easy until I determined that the OXUF943SE used the USB Mass Storage Device Bulk-Only mode and found that this firmware does too.
 
-This is NOT a 68000 boot ROM; it appears to be loaded at $xxxxx. Addresses beginning with ~ are in the offset form. Nevertheless, it is mostly code, and virtually every function in the code has a frame pointer; that is,
+This is NOT a 68000 boot ROM; it appears to be loaded at $4000000. Addresses beginning with ~ are in the offset form. Nevertheless, it is mostly code, and virtually every function in the code has a frame pointer; that is,
 ```
 	link	a6,#nn
 	...
