@@ -1,4 +1,4 @@
-The PLX OXUF943SE is one of many different USB-SATA bridge chips used by WD MyBooks with encryption. The only bit of information about this chip that isn't covered by a NDA is the promotional booklet, which tells us that the firmware is ARM-based and that the chip has both AES-128 and AES-256 encryption hardware.
+The PLX OXUF943SE (OX for Oxford Semiconductor?) is one of many different USB-SATA bridge chips used by WD MyBooks with encryption. The only bit of information about this chip that isn't covered by a NDA is the promotional booklet, which tells us that the firmware is ARM-based and that the chip has both AES-128 and AES-256 encryption hardware.
 
 I won't release the dump that I got from the same place Western Digital's own firmware updater software gets it from, nor will I release the disassembly — at least not on github. Here's what you need to know about the file, though:
 
