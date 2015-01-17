@@ -65,6 +65,8 @@ At ~0xC547 are three sets of suspicious 16-byte blocks...
 
 Checks for `WDq1` at 0x3C00 are at ~0x5164, ~0x5194, ~0x5300, and ~0x5390.
 
+Is ~0xBA7E the firmware's main loop? If so 0x3F44 is the current argument. It might not be...
+
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
 - 0x1BBC - compare R0 to R4, R1 to R5, R2 to R6, R3 to R7
