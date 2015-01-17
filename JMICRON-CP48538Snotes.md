@@ -48,12 +48,30 @@ CHUNK 0 - HEADER (0x60 BYTES)
 0		4		WDv1		0x3206	[TODO]
 4		2		checksum	0x320A	[TODO]
 ...
+0x20	1		01			0x3226	[TODO]
+...
+0x24	4		[00 00]FP	0x322A	[TODO]
+...
+0x30	1		00			0x3236	[TODO]
+0x31	1		see next	0x3237	[TODO]
+	bit 0 - ??
+	bit 1 - set if bit 5 of 0x3F2F is set
+	bit 2-7 - ??
+0x32	1		FF			0x3238	[TODO]
+0x33	1		00			0x3239	[TODO]
+...
 0x5C	4		WDv1		0x3262	[TODO]
 CHUNK 1 - SOMETHING ELSE (0xXXX(0x30?0x90?) BYTES)
 0x60	4		WDq1		0x3266	~0x543B
 0x64
 0x68	0x10	????		0x326E	[TODO]
 0x68	2		checksum	0x326E	[TODO] WTF?
+...
+0x20	1		00			0x3286	[TODO]
+	(other bits TODO; set before bit 5)
+	bit 5 - set by ~0x5566 if bit 2 of 0x3F2F set
+	bit 6-7 - ????
+0x21	1		00			0x3287	~0x556D
 ...
 [CHUNK 2?]
 0x90	4		WDqe		0x3296	[TODO]
@@ -66,6 +84,7 @@ At ~0xC547 are three sets of suspicious 16-byte blocks...
 Checks for `WDq1` at 0x3C00 are at ~0x5164, ~0x5194, ~0x5300, and ~0x5390.
 
 Is ~0xBA7E the firmware's main loop? If so 0x3F44 is the current argument. It might not be...
+>Upon further investigation it may actually be the key sector writing loop...?
 
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
@@ -77,3 +96,5 @@ I believe these are provided by the boot ROM; if they are actually in RAM and co
 	- Is 0x2B6C the same, but for copying from code memory?
 
 TODO could 0x329F be related to disk transfers — or worse, to encryption?
+
+TODO could 0x2B46 be memclr?
