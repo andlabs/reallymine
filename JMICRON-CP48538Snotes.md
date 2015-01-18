@@ -41,6 +41,10 @@ I do not see either a CBW or a CSW signature in here, at least not directly...
 
 The function at ~0x5217 sets `DPTR` to whatever's at RAM 0x409C and then checks `DPTR` and `DPTR+0x5C` to see if they match `WDv1`. It then checks a few other things that I don't know about... (checksum of just the first 0x58 bytes?)
 
+The function at ~0x44BB writes something to 0x70B6, then checks 0x70B7 repeatedly until bit 0 is set.
+
+The function at ~0x81F3 converts a SCSI READ(10)-format input block to an SCSI READ(16)-format block.
+
 ```
 KEY SECTOR STRUCTURE
 Offset	Size	What		RAM		Code

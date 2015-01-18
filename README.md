@@ -42,6 +42,11 @@ Of note: the OS X equivalent of Unlock.exe, which is not stripped by virtue of t
 
 I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; this appears to be before WD started encrypting the drives, as there don't seem to be AES constants in the firmware (though I might not be looking hard enough). I am currently up to trying to find newer firmware versions.
 
+## Useful Documents and Web Pages
+* **[USB Made Simple, Part 4 - Protocol](http://www.usbmadesimple.co.uk/ums_4.htm)**<br>Exactly what it says on the tin.
+* **[Universal Serial Bus Mass Storage Class Bulk-Only Transport Specification](http://www.usb.org/developers/docs/devclass_docs/usbmassbulk_10.pdf)**<br>Also called "BBB" mode. Some, but not all (seemingly, anyway), of the USB-SATA bridge chip manufacturers Western Digital uses provide firmwares that use this protocol to communicate data requests.
+* **[Seagate SCSI Commands Reference Manual](http://www.seagate.com/staticfiles/support/disc/manuals/Interface%20manuals/100293068c.pdf)**<br>Yes, a Seagate manual being used to crack Western Digital drives! LOGIC! (It makes sense; Seagate is the successor to the company that created what would become SCSI... it's complicated. Also I'm not sure whether the actual SCSI standards are freely available (or if their text is different) — TODO.) Anyway, even though the MyBooks use a "USB-SATA bridge", drive commands are actually SCSI commands, not ATA commands, so... yeah :V
+
 ## Contributions
 **PLEASE**. Just be willing to share this knowledge for the sake of everyone who is unfortunate enough to own one of these drives.
 
