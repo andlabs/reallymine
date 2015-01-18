@@ -48,7 +48,7 @@ TODO describe the various vendors and their firmwares in some sort of notes over
 
 ## Useful Documents and Web Pages
 * **[USB Made Simple, Part 4 - Protocol](http://www.usbmadesimple.co.uk/ums_4.htm)**<br>Exactly what it says on the tin.
-* **[USB "Mass Storage Specification Overview" (cover page is blank for some reason)](http://www.usb.org/developers/docs/devclass_docs/Mass_Storage_Specification_Overview_v1.4_2-19-2010.pdf)**<br>Some protocol information for USB Mass Storage Devices. As it says Overview, it doesn't seem to contain a whole lot of information; so far, all it really did for me was identify two command bytes in the OXUF943SE firmware that led me to...
+* **[Universal Serial Bus Mass Storage Class Specification Overview](http://www.usb.org/developers/docs/devclass_docs/Mass_Storage_Specification_Overview_v1.4_2-19-2010.pdf)**<br>Some protocol information for USB Mass Storage Devices. As it says Overview, it doesn't seem to contain a whole lot of information; so far, all it really did for me was identify two command bytes in the OXUF943SE firmware that led me to...
 * **[Universal Serial Bus Mass Storage Class Bulk-Only Transport Specification](http://www.usb.org/developers/docs/devclass_docs/usbmassbulk_10.pdf)**<br>Also called "BBB" mode. Some, but not all (seemingly, anyway), of the USB-SATA bridge chip manufacturers Western Digital uses provide firmwares that use this protocol to communicate data transfers and data transfer requests.
 * **[Seagate SCSI Commands Reference Manual](http://www.seagate.com/staticfiles/support/disc/manuals/Interface%20manuals/100293068c.pdf)**<br>Yes, a Seagate manual being used to crack Western Digital drives! LOGIC! (It makes sense; Seagate is the successor to the company that created what would become SCSI... it's complicated. Also I'm not sure whether the actual SCSI standards are freely available (or if their text is different) — TODO.) Anyway, even though the MyBooks use a "USB-SATA bridge", drive commands are actually SCSI commands, not ATA commands, so... yeah :V
 
@@ -65,6 +65,7 @@ TODO describe the various vendors and their firmwares in some sort of notes over
 	- find Drive B's bridge chip; no idea if it can be salvaged but I still have it somewhere around here
 - get the model number from Drive A's case
 	- Drive B's case might be lost, however...
+- bug in Nightly's PDF viewer renders the cover page of the Mass Storage Specification Overview as blank; TODO verify and file bug report
 
 thanks TODO:
 - Xenesis (minor THUMB help)
