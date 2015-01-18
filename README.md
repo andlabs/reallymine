@@ -40,11 +40,16 @@ The OS X equivalent of Unlock.exe is a bit more open: the salt and iteration cou
 
 Of note: the OS X equivalent of Unlock.exe, which is not stripped by virtue of the design of the Objective-C runtime, calls the block with the password hint the "handy store security block" and begins with the byte sequence `00 01 44 57` (the last two bytes being `WD` in reverse).
 
-I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; this appears to be before WD started encrypting the drives, as there don't seem to be AES constants in the firmware (though I might not be looking hard enough). I am currently up to trying to find newer firmware versions.
+I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; this appears to be before WD started encrypting the drives, as there don't seem to be AES constants in the firmware (though I might not be looking hard enough). I have started looking into recent firmwares; the various `*notes.md` files in the root directory of this repository have my notes so far.
+
+(I'm not going to release any ROMs, executables, or disassemblies on github. If I need to, I'll upload them to storage that I (or like-minded people I know to allow said files) have control over.)
+
+TODO describe the various vendors and their firmwares in some sort of notes overview or something here or in another file
 
 ## Useful Documents and Web Pages
 * **[USB Made Simple, Part 4 - Protocol](http://www.usbmadesimple.co.uk/ums_4.htm)**<br>Exactly what it says on the tin.
-* **[Universal Serial Bus Mass Storage Class Bulk-Only Transport Specification](http://www.usb.org/developers/docs/devclass_docs/usbmassbulk_10.pdf)**<br>Also called "BBB" mode. Some, but not all (seemingly, anyway), of the USB-SATA bridge chip manufacturers Western Digital uses provide firmwares that use this protocol to communicate data requests.
+* **[USB "Mass Storage Specification Overview" (cover page is blank for some reason)](http://www.usb.org/developers/docs/devclass_docs/Mass_Storage_Specification_Overview_v1.4_2-19-2010.pdf)**<br>More detailed protocol information for USB Mass Storage Devices. As it says Overview, it doesn't seem to contain a whole lot of information; so far, all it really did for me was identify two command bytes in the OXUF943SE firmware that led me to...
+* **[Universal Serial Bus Mass Storage Class Bulk-Only Transport Specification](http://www.usb.org/developers/docs/devclass_docs/usbmassbulk_10.pdf)**<br>Also called "BBB" mode. Some, but not all (seemingly, anyway), of the USB-SATA bridge chip manufacturers Western Digital uses provide firmwares that use this protocol to communicate data transfers and data transfer requests.
 * **[Seagate SCSI Commands Reference Manual](http://www.seagate.com/staticfiles/support/disc/manuals/Interface%20manuals/100293068c.pdf)**<br>Yes, a Seagate manual being used to crack Western Digital drives! LOGIC! (It makes sense; Seagate is the successor to the company that created what would become SCSI... it's complicated. Also I'm not sure whether the actual SCSI standards are freely available (or if their text is different) — TODO.) Anyway, even though the MyBooks use a "USB-SATA bridge", drive commands are actually SCSI commands, not ATA commands, so... yeah :V
 
 ## Contributions
