@@ -86,11 +86,23 @@ Checks for `WDq1` at 0x3C00 are at ~0x5164, ~0x5194, ~0x5300, and ~0x5390.
 Is ~0xBA7E the firmware's main loop? If so 0x3F44 is the current argument. It might not be...
 >Upon further investigation it may actually be the key sector writing loop...?
 
+At ~0x7FD7 is an array of byte-address pairs that seem to map to a list of SCSI commands...? The array seems to end with the ele
+ment at either ~0x8046 or ~0x8049...
+>Another such list is at ~0x810E, ending at either ~0x8150 or ~0x8153.
+>A third at ~0x93B1, ends either at ~0x93C9 or ~0x93CC.
+>And a fourth at ~0xAAF4, ending either at ~0xAB39 or ~0xAB3C.
+
+According to that, 0x3E9F is the byte that holds the SCSI command.
+
+~0x81F3 is the first function called by one of the READ(10) handlers (~0x8084); this function seems to handle parameters.
+
+TODO is 0x70B0 the ultimate resting place of the starting LBA? Or is 0x4046? or 0x3ED1?! so much copying...
+
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
 - 0x1BBC - compare R0 to R4, R1 to R5, R2 to R6, R3 to R7
 - 0x2B50 - memcpy
-	- R6:R7 - (TODO source or destination? initial observation suggested source but after seeing random register assignment order I'm not sure)
+	- R6:R7 - (TODO source or destination? initial observation suggested source but after seeing random register assignment order I'm not sure (~0x821A suggests that it is indeed source))
 	- R4:R5 - (TODO opposite of above)
 	- R3 - length (bytes)
 	- Is 0x2B6C the same, but for copying from code memory?
@@ -98,3 +110,5 @@ I believe these are provided by the boot ROM; if they are actually in RAM and co
 TODO could 0x329F be related to disk transfers — or worse, to encryption?
 
 TODO could 0x2B46 be memclr?
+
+TODO 0x1C2D does not return to caller; figure out how it processes the data after it (a word, the SCSI command arrays mentioned above; some more data)
