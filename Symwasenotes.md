@@ -28,5 +28,3 @@ This is NOT a 68000 boot ROM; it appears to be loaded at $4000000. Addresses beg
 The code to handle a CBW is at the function at ~$400CDCA; it checks one character at a time for some reason. The firmware seems to /expect/
 - up to 16 CBW command bytes, copied elsewhere for processing unconditionally after parsing the CBW structure
 - at least one CBW command byte, checking its values and returning errors (I think) before even doing any additional processing (outside of parsing the CBW structure)
-
-BIG OL' TODO: the code that copies the 16 CBW command bytes uses longword reads from an odd address; this is illegal on the vanilla 68000 (misaligned memory access). Does the 68020 allow it?

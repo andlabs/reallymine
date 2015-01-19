@@ -70,3 +70,4 @@ TODO describe the various vendors and their firmwares in some sort of notes over
 thanks TODO:
 - Xenesis (minor THUMB help)
 - Sik (minor documentation fixes)
+- FraGag (minor 68020 information)
