@@ -102,6 +102,25 @@ According to that, 0x3E9F is the byte that holds the SCSI command.
 
 TODO is 0x70B0 the ultimate resting place of the starting LBA? Or is 0x4046? or 0x3ED1?! so much copying...
 
+Let's reverse the path through the code at ~0x7FCE, which seems to contain the only case of a SCSI READ command in the SCSI command tables (the ~0x7FD7 one).
+- ~0x7FCE is a subroutine called at ~0x9356
+- Immediately prior to that, 0x3E9F, the 16 input block bytes, are copied from 0x300F.
+- Immediately prior to that is a check that determines whether any of the above is even run: the function at ~0x97AC is called; if it returns with the carry bit SET, then the above code is SKIPPED. This routine does:
+```
+if xdata 0x7037 ^ 1 == 0
+	return carry clear
+if xdata 0x7036 != 0x41 && xdata 0x7036 != 0x81
+	return carry clear
+if xdata 0x300F & 0xF0 == 0x80		// SCSI command
+	irrelevant; now we know data is already read by this point
+if xdata 0x300F & 0xF0 != 0x20		// SCSI command
+	return carry clear
+if xdata 0x3018 != 0
+	return carry clear
+irrelevant; now we know data is already read by this point
+```
+So data is already read by this point, and thus we need to keep searching.
+
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
 - 0x1BBC - compare R0 to R4, R1 to R5, R2 to R6, R3 to R7
