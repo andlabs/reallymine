@@ -121,6 +121,8 @@ irrelevant; now we know data is already read by this point
 ```
 So data is already read by this point, and thus we need to keep searching.
 
+**ASIDE** - Hold up a sec. While writing FirmwareGeneralnotes.md, I came to a realization: The command bytes start at 0x300F. 0xF is the offset of the command bytes in a CBW packet. Is this firmware communicating using BBB after all, and just not checking for a signature?...
+
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
 - 0x1BBC - compare R0 to R4, R1 to R5, R2 to R6, R3 to R7
