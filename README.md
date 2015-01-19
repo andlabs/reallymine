@@ -38,9 +38,9 @@ I have attempted to reverse-engineer Unlock.exe. So far, I figured out that the 
 
 The OS X equivalent of Unlock.exe is a bit more open: the salt and iteration count seem to be more variable and the default salt appears to be `WDC.`. No idea if this is a guarantee. No idea if the Windows version writes this as a UTF-8 or as a UTF-16 string. Still don't think this is related, even though the OS X version talks about encryption a lot.
 
-Of note: the OS X equivalent of Unlock.exe, which is not stripped by virtue of the design of the Objective-C runtime, calls the block with the password hint the "handy store security block" and begins with the byte sequence `00 01 44 57` (the last two bytes being `WD` in reverse).
+Of note: the OS X equivalent of Unlock.exe, which is not stripped by virtue of the design of the Objective-C runtime, calls the block with the password hint the "handy store security block" and confirms that it begins with the byte sequence `00 01 44 57` (the last two bytes being `WD` in reverse).
 
-I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; this appears to be before WD started encrypting the drives, as there don't seem to be AES constants in the firmware (though I might not be looking hard enough). I have started looking into recent firmwares; the various `*notes.md` files in the root directory of this repository have my notes so far.
+I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; I don't know if this was before WD started encrypting the drives. I might come back to this one in the future. In the meantime, I have started looking into recent firmwares; the various `*notes.md` files in the root directory of this repository have my notes so far.
 
 (I'm not going to release any ROMs, executables, or disassemblies on github. If I need to, I'll upload them to storage that I (or like-minded people I know to allow said files) have control over.)
 
