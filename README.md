@@ -60,7 +60,7 @@ TODO describe the various vendors and their firmwares in some sort of notes over
 - get a more comprehensive list of the affected drives
 	- confirm if MyPassport is affected /in exactly the same way/ and update the description of this repo
 - my Drive A has two sectors that begin with `WD`, the key sector and some other, and neither of them use `WDv1` (and the part between the two `WD`s is 16 bytes smaller)
-- drives that use some(?) Symwase bridge chips have an entirely different format for this sector; TODO
+- drives that use some(?) Symwave bridge chips have an entirely different format for this sector; TODO
 - get info about Drive A's bridge chip; I still have it and it still works
 	- find Drive B's bridge chip; no idea if it can be salvaged but I still have it somewhere around here
 - get the model number from Drive A's case

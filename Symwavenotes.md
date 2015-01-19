@@ -1,4 +1,4 @@
-Western Digital's firmware update tool's database is nondescript about which Symwase chips the firmwares it does have map to (only saying "Symwase R2"), but does indicate whether a given firmware is used on an encrypted or an unencrypted device. Let's take an encrypted one, of course :V
+Western Digital's firmware update tool's database is nondescript about which Symwave chips the firmwares it does have map to (only saying "Symwave R2"), but does indicate whether a given firmware is used on an encrypted or an unencrypted device. Let's take an encrypted one, of course :V
 
 I won't release the dump that I got from the same place Western Digital's own firmware updater software gets it from, nor will I release the disassembly — at least not on github. Here's what you need to know about the file, though:
 
