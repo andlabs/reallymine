@@ -10,6 +10,7 @@ import (
 // - colorize error output?
 // - do an extra check to make sure in isn't a symlink to out? or isn't the same as out?
 // - make sure all cases of errf() have a trailing newline
+// - don't do die() late in the game?
 
 var inname string
 var in *os.File
