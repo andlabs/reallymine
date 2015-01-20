@@ -11,6 +11,7 @@ import (
 // - do an extra check to make sure in isn't a symlink to out? or isn't the same as out?
 // - make sure all cases of errf() have a trailing newline
 // - don't do die() late in the game?
+// - consider hyphenated's advice about taking detailed errors out and putting them in the manual
 
 var inname string
 var in *os.File
