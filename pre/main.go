@@ -61,7 +61,7 @@ func main() {
 		errf(`usage: %s infile outfile
     infile must be a regular file containing a
         raw dump of the encrypted hard drive,
-        such as one produced by GNUddrescue
+        such as one produced by GNU ddrescue
     outfile must not exist
 `, os.Args[0])
 		dd_rescuenote()
