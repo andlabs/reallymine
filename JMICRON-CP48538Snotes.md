@@ -123,6 +123,14 @@ So data is already read by this point, and thus we need to keep searching.
 
 **ASIDE** - Hold up a sec. While writing FirmwareGeneralnotes.md, I came to a realization: The command bytes start at 0x300F. 0xF is the offset of the command bytes in a CBW packet. Is this firmware communicating using BBB after all, and just not checking for a signature?...
 
+Anyway...
+
+- Immediately before that call, another input data copying route is taken if RAM 0x5E is nonzero
+- All that was at ~0x9340, so let's follow where that's jumped to: ~0x9331. (There's another one a bit later as well, but that's on the same codepath as this, just with slightly different conditions.)
+- This particular instance is only jumped to if RAM 0x6A == 0x20.
+- Before that, ~0x7F56 is called; a different code path is taken if it returns with carry clear. Within that function, there's an access of the DESTINATION command bytes (specifically 0x3E9F at ~0x7F67). But let's keep going for now... (as it turns out, I forgot it was the destination the first time, but if we keep going we see the source data has to be there by before this call (next bullet point), so...)
+- Reading back up the main code path, we see lots of zero page memory accesses and other single-byte or two-byte memory copies, only one of which (two bytes from 0x300C at ~0x9302 and four bytes from 0x3008 at ~0x92D6) is remotely interesting.
+
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
 - 0x1BBC - compare R0 to R4, R1 to R5, R2 to R6, R3 to R7
