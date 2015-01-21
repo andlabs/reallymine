@@ -131,6 +131,10 @@ Anyway...
 - Before that, ~0x7F56 is called; a different code path is taken if it returns with carry clear. Within that function, there's an access of the DESTINATION command bytes (specifically 0x3E9F at ~0x7F67). But let's keep going for now... (as it turns out, I forgot it was the destination the first time, but if we keep going we see the source data has to be there by before this call (next bullet point), so...)
 - Reading back up the main code path, we see lots of zero page memory accesses and other single-byte or two-byte memory copies, only one of which (two bytes from 0x300C at ~0x9302 and four bytes from 0x3008 at ~0x92D6) is remotely interesting.
 
+0x3008 is the CBW length. Byte 0x300C is the flags, the upper bit of which is the data transfer direction. This bit is stored at RAM 0x25 bit 3. Let's follow that for now (partially because peeking doesn't reveal any other useful information...).
+
+There are quite a few accesses to this bit. (As a reminder, if the bit is set, the operation is a read operation.)
+
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
 - 0x1BBC - compare R0 to R4, R1 to R5, R2 to R6, R3 to R7
