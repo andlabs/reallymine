@@ -133,7 +133,21 @@ Anyway...
 
 0x3008 is the CBW length. Byte 0x300C is the flags, the upper bit of which is the data transfer direction. This bit is stored at RAM 0x25 bit 3. Let's follow that for now (partially because peeking doesn't reveal any other useful information...).
 
-There are quite a few accesses to this bit. (As a reminder, if the bit is set, the operation is a read operation.)
+There are quite a few accesses to this bit. (As a reminder, if the bit is set, the operation is a read operation.) Here are all accesses to this bit (apart from setting the bit, which is the only place where it actually IS set):
+
+```
+access     read path         write path
+~0x90DC    call 0x30C8       call 0x1CFF
+~0x93D3    call ~0x9B27      call ~0x9B59
+~0x9415    [MAJOR DIFFERENCES - NEEDS EXAMINATION]
+~0x9566    set 0x24 bit 6    call ~0x99EA
+~0x95C0    do nothing        call ~0x99EA
+~0x9870    [NONDISCRIMINATE CODE - NEEDS EXAMINATION]
+~0x98E7    [NONDISCRIMINATE CODE - NEEDS EXAMINATION]
+~0x9990    [MAJOR DIFFERENCES - NEEDS EXAMINATION]
+~0x9F84    [MAJOR DIFFERENCES - NEEDS EXAMINATION]
+~0xA031    [MAJOR DIFFERENCES - NEEDS EXAMINATION]
+```
 
 ## Known boot ROM routines
 I believe these are provided by the boot ROM; if they are actually in RAM and copied on system startup, I do not know (TODO).
