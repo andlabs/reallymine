@@ -46,4 +46,4 @@ code:0000ABE1                 ljmp    code_2D51
 code:0000ABE4 ; ---------------------------------------------------------------------------
 ```
 
-If the `mov DPTR` instruction wasn't a giveaway, then loading the ROM as-is results in each of these `ljmp`s jumping into the 0xFF block. So let's see what happens if we load the lower half of the ROM at address 0x0 instead.
+Loading the ROM as-is results in each of these `ljmp`s jumping into the 0xFF block. The `mov DPTR` line, combined with these jump target addresses, implies that this code should be in the 0x2000 region instead. So let's see what happens if we load the lower half of the ROM at address 0x0 instead.
