@@ -17,7 +17,7 @@ Filenames in the device table are stored as relative paths; they are relative to
 The following five companies have manufactured USB-SATA bridge chips for the MyBook series:
 
 * **ASMedia**<br>Variety of [TODO get architecture] chips. [TODO get model]
-* **Initio**<br>Variety of 8051-based chips. [TODO get model]
+* **Initio**<br>Variety of 8051-based chips. The firmware I'm looking at is identified as being from the INIC-1607E.
 * **JMicron**<br>Variety of 8051-based chips. The firmware I'm looking at is identified as being from the JMICRON-CP48 538S (though both ASMedia and Initio are also listed as having chips called "CP48"...).
 * **PLX** ([formerly](http://www.bloomberg.com/apps/news?pid=newsarchive&sid=aEeIQGrHLbrI) **Oxford Semiconductor**)<br>Variety of ARM-based chips. The firmware I'm looking at is identified as being from the OXUF943SE.
 * **Symwave**<br>Variety of Motorola 68020-based chips. No specific model numbers identified.
