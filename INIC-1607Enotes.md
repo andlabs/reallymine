@@ -47,3 +47,46 @@ code:0000ABE4 ; ----------------------------------------------------------------
 ```
 
 Loading the ROM as-is results in each of these `ljmp`s jumping into the 0xFF block. The `mov DPTR` line, combined with these jump target addresses, implies that this code should be in the 0x2000 region instead. So let's see what happens if we load the lower half of the ROM at address 0x0 instead.
+
+From this point on, addresses prefixed with a ~ should be with this mapping.
+
+At ~0x2682 is a list of device ID mappings:
+```
+type xxxxTODO struct {
+	vendorID		uint16
+	productID		uint16
+	unknown		uint16
+	someString	*string	// ASCII; null-terminated (TODO match with JMicron notes)
+	someString2	*stirng	// ASCII; null-terminated
+	someString3	*string	// ASCII; null-terminated
+}
+```
+(where pointers are two bytes wide); the last entry in this array begins at ~0x2706. Strangely, this last entry refers to a product called the "Western Digital Bit Bucket", vendor ID 0x1058 product ID 1.
+
+The function at ~0x3114 writes R4, R5, R6, and R7 (in that order) to successive bytes at DPTR.
+
+RAM 0x7D20 seems to be where the key sector is written to when creating...?
+
+~0x72BE is memcpy(). R4:R5 is the destination, R6:R7 is the source, and R3 is the byte count.
+
+The function to handle SCSI commands seems to be ~0x315D. The list of commands to parse is an array taken from the instruction stream of the form:
+```go
+; TODO fix formatting
+type xxxTODO struct {
+	code			pointer		// 16-bit
+	command		byte
+}
+```
+with the list ending with a zero `code`. After this zero `code` is the address to jump to if no command matches. In other words, a call that would only handle the READ(10) and READ(16) commands would be
+```
+	; TODO fix formatting
+	mov	A, commandByte
+	lcall	TODO
+	struct xxxx <code_READ10, SCSI_READ_10>
+	struct xxxx <code_READ16, SCSI_READ_16>
+	.word 0
+	.word code_neither_READ10_nor_READ16
+```
+where `SCSI_READ_10` and `SCSI_READ_16` are the command byte values themselves.
+
+These SCSI command lists seem to be separated by overall task; the code that is run on a read operation appears to be at ~0x2331, with the list itself starting at ~0x2337.
