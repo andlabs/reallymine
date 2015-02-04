@@ -90,3 +90,5 @@ with the list ending with a zero `code`. After this zero `code` is the address t
 where `SCSI_READ_10` and `SCSI_READ_16` are the command byte values themselves.
 
 These SCSI command lists seem to be separated by overall task; the code that is run on a read operation appears to be at ~0x2331, with the list itself starting at ~0x2337.
+
+This and three of the four(?) other SCSI command lists read the command byte from RAM 0x3B. This (and the following 15 bytes) are copied from RAM 0x8F at ~0xC0C. I'm going to guess by that RAM address that this is a CBW block. With this assumption, if we scroll up a bit, we see the transfer length copied to RAM 0x31 at ~0xBBD and the read/write bit written as a full byte to RAM 0xB0B4 at ~0xBDF.
