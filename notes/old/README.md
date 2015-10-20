@@ -1,5 +1,7 @@
 ## General Firmware Notes
 
+> These notes are abandoned, as the "got HW crypto?" paper obsoletes my own research. Look a directory up for more information.
+
 Previously, each MyBook had its own firmware update software which came with the firmware and code to perform the update. Sometime recently (as of 2010, possibly), there is now one single firmware update program, which downloads both the firmware and code to perform the updating from the Internet.
 
 I have not dived too deeply into the Windows version of this new updater, as the Mac OS X version, because of how the Apple Objective-C runtime works, is effectively unstripped (as far as Objective-C classes and methods go, anyway). There are two XML files at play here. The first one, which is also provided with the updater, contains information about each supported MyBook family device. This is called the [TODO get name]. The second XML file, which is always downloaded (or so it seems...), contains the filenames of all the firmwares and updater software, for both Windows and Mac. This is (somewhat confusingly) called the "device table".
