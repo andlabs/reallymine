@@ -23,51 +23,23 @@ The encryption chip also chops off the upper portion of the disk (or so). This p
 
 As it turns out, the encryption key isn't necessarily stored on the bridge chip. Instead, it's stored in two places: a "module" of the drive's "system area" (I don't know what this means, nor can I yet find a Linux utility that examines this - TODO) and as a backup in a sector near the end of the drive. This "key sector" contains several bits of information (notably the size of the drive that the bridge chip exposes).
 
-## So what have I done so far?
-So far I've found the key sector and attempted to brute force the key out of it. One thing's for sure: it is NOT stored directly as such in the sector.
+## Cracking the Code
+This is not a new problem. This has never been an unsolved problem. "Data recovery experts" have been able to recover WD data for years. They merely have [chosen not to reveal this information](http://forum.hddguru.com/viewtopic.php?t=21584) [lest it hurt their business](http://forum.hddguru.com/viewtopic.php?t=24567&f=1&start=0#p165906). **Bullshit**. I'm not trusting my data to strangers. So I was on my own.
 
-So how is it stored?
+I spent much of the first few months of 2015 on independent research, then took a hiatus to focus on [other projects](https://github.com/andlabs/libui). You can see the results of this early research in the folder notes/old/. My research was done entirely by reverse-engineering firmware and Western Digital's VCD software. The firmware was downloaded from Western Digital's servers, based on reverse-engineered firmware upgraders.
 
-I don't know. The only people who do know seem to be so-called "data recovery experts", who have [chosen not to reveal this information](http://forum.hddguru.com/viewtopic.php?t=21584) [lest it hurt their business](http://forum.hddguru.com/viewtopic.php?t=24567&f=1&start=0#p165906). **Bullshit**. I'm not trusting my data to strangers.
+In the meantime, three security researchers, Gunnar Alendal, Christian Kison, and modg, independently performed their own research, using hardware tools as well as software tools. Their paper, ["got HW crypto?: On the (in)security of a Self-Encrypting Drive series"](http://eprint.iacr.org/2015/1002.pdf), was published in September 2015, but I only found out a month later via Twitter. Their work went above and beyond what I ever did, to the point that **almost everything we need to recover a drive is finally public knowledge**. And now, with a little bit more figuring out, I can finally write the actual reallymine program. My research is thus now abandoned, as it is no longer needed; it is still available (as mentioned above).
 
-As a result, this project is licensed under the GPL version 3. You should be the one who owns your data, not other people. (In fact I'm wondering if this whole encryption thing is solely in place for their benefit.) It's also appalling that there is only one website on the entire Internet dedicated to cracking this nut.
+Unfortunately, they have chosen not to publish keys, binary blobs, or working code, in the name of security ethics and responsibility. So there's still more work to be done. In the name of recovering my data, reallymine will have to disclose some of the information that was kept back; you can find these in notes/Disclosure.md.
 
-[This is not an unsolved problem; there are commercial utilities that can do what I am aiming to do here.](http://www.acelaboratory.com/news/newsitem.php?itemid=115) [Someone else has posted an encryption key from another peron's drive](http://forum.hddguru.com/viewtopic.php?t=19408&f=1&start=40&#p136073) [given only these screenshots of the key sector](http://forum.hddguru.com/viewtopic.php?t=19408&f=1&start=0#p131488). (A post on the third link indicates that the bridge chips appear to be Intel 8051 derivatives.)
+Hopefully a working prototype of reallymine can be out by early 2016, at which point decryption knowledge should be virtually complete.
 
-I have attempted to reverse-engineer Unlock.exe. So far, I figured out that the SmartWare password is salted and hashed with a buggy implementation of SHA-256. I do not know what the salt is, but it is related to the drive being passworded. I do not think this will help figure out the encryption key.
+## License
+Because of those "data recovery experts" who chose to value their profits over public knowledge, this project is licensed under the GPL version 3. You should be the one who owns your data, not other people. (In fact I'm wondering if this whole encryption thing is solely in place for their benefit.)
 
-The OS X equivalent of Unlock.exe is a bit more open: the salt and iteration count seem to be more variable and the default salt appears to be `WDC.`. No idea if this is a guarantee. No idea if the Windows version writes this as a UTF-8 or as a UTF-16 string. Still don't think this is related, even though the OS X version talks about encryption a lot.
+TODO should I switch to Affero GPL, just to be safe?
 
-Of note: the OS X equivalent of Unlock.exe, which is not stripped by virtue of the design of the Objective-C runtime, calls the block with the password hint the "handy store security block" and confirms that it begins with the byte sequence `00 01 44 57` (the last two bytes being `WD` in reverse).
-
-I have a dump of the "UF924DS" bridge chip firmware version r1.08a from 2007; I don't know if this was before WD started encrypting the drives. I might come back to this one in the future. In the meantime, I have started looking into recent firmwares; the various `*notes.md` files in the root directory of this repository have my notes so far.
-
-(I'm not going to release any ROMs, executables, or disassemblies on github. If I need to, I'll upload them to storage that I (or like-minded people I know to allow said files) have control over.)
-
-TODO describe the various vendors and their firmwares in some sort of notes overview or something here or in another file
-
-## Useful Documents and Web Pages
-* **[USB Made Simple, Part 4 - Protocol](http://www.usbmadesimple.co.uk/ums_4.htm)**<br>Exactly what it says on the tin.
-* **[Universal Serial Bus Mass Storage Class Specification Overview](http://www.usb.org/developers/docs/devclass_docs/Mass_Storage_Specification_Overview_v1.4_2-19-2010.pdf)**<br>Some protocol information for USB Mass Storage Devices. As it says Overview, it doesn't seem to contain a whole lot of information; so far, all it really did for me was identify two command bytes in the OXUF943SE firmware that led me to...
-* **[Universal Serial Bus Mass Storage Class Bulk-Only Transport Specification](http://www.usb.org/developers/docs/devclass_docs/usbmassbulk_10.pdf)**<br>Also called "BBB" mode. Some, but not all (seemingly, anyway), of the USB-SATA bridge chip manufacturers Western Digital uses provide firmwares that use this protocol to communicate data transfers and data transfer requests.
-* **[Seagate SCSI Commands Reference Manual](http://www.seagate.com/staticfiles/support/disc/manuals/Interface%20manuals/100293068c.pdf)**<br>Yes, a Seagate manual being used to crack Western Digital drives! LOGIC! (It makes sense; Seagate is the successor to the company that created what would become SCSI... it's complicated. Also I'm not sure whether the actual SCSI standards are freely available (or if their text is different) — TODO.) Anyway, even though the MyBooks use a "USB-SATA bridge", drive commands are actually SCSI commands, not ATA commands, so... yeah :V
-
-## Contributions
-**PLEASE**. Just be willing to share this knowledge for the sake of everyone who is unfortunate enough to own one of these drives.
-
-## TODO
-- brute force program: http://forum.hddguru.com/viewtopic.php?t=19408&f=1&start=40&#p136073 describes some necessary ciphertext alterations (byteswapping)
-- get a more comprehensive list of the affected drives
-	- confirm if MyPassport is affected /in exactly the same way/ and update the description of this repo
-- my Drive A has two sectors that begin with `WD`, the key sector and some other, and neither of them use `WDv1` (and the part between the two `WD`s is 16 bytes smaller)
-- drives that use some(?) Symwave bridge chips have an entirely different format for this sector; TODO
-- get info about Drive A's bridge chip; I still have it and it still works
-	- find Drive B's bridge chip; no idea if it can be salvaged but I still have it somewhere around here
-- get the model number from Drive A's case
-	- Drive B's case might be lost, however...
-- bug in Nightly's PDF viewer renders the cover page of the Mass Storage Specification Overview as blank; TODO verify and file bug report
-
-thanks TODO:
+## Thanks (TODO)
 - Xenesis (minor THUMB help)
 - Sik (minor documentation fixes)
 - FraGag (minor 68020 information)
