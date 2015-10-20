@@ -1,3 +1,7 @@
+# reallymine: Western Digital MyBook/MyPassport decryption
+
+(The name is a play on the name of the brand of drives; the point being that with this tool, the data *really is yours*.)
+
 ## The Story
 I have two 1TB Western Digital MyBooks.
 
@@ -44,3 +48,6 @@ TODO should I switch to Affero GPL, just to be safe?
 - Sik (minor documentation fixes)
 - FraGag (minor 68020 information)
 - fd0 (irc.freenode.net #go-nuts; help with dealing with decryption keys)
+
+## TODOs
+- Modify this README to talk about the various bridge chips, encryption methods, etc.
