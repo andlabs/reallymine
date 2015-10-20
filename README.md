@@ -71,3 +71,4 @@ thanks TODO:
 - Xenesis (minor THUMB help)
 - Sik (minor documentation fixes)
 - FraGag (minor 68020 information)
+- fd0 (irc.freenode.net #go-nuts; help with dealing with decryption keys)
