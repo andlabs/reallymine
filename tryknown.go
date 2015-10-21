@@ -1,0 +1,109 @@
+// 20 october 2015
+package main
+
+import (
+	"fmt"
+	"crypto/aes"
+	"encoding/hex"
+)
+
+var pi = []byte{
+//	0x03, 0x14, 0x15, 0x92, 0x65, 0x35, 0x89, 0x79, 0x2B, 0x99, 0x2D, 0xDF, 0xA2, 0x32, 0x49, 0xD6,
+//	0x03, 0x14, 0x15, 0x92, 0x65, 0x35, 0x89, 0x79, 0x32, 0x38, 0x46, 0x26, 0x43, 0x38, 0x32, 0x79,
+//	0xFC, 0xEB, 0xEA, 0x6D, 0x9A, 0xCA, 0x76, 0x86, 0xCD, 0xC7, 0xB9, 0xD9, 0xBC, 0xC7, 0xCD, 0x86,
+
+	0x82, 0x44, 0xbc, 0x08, 0x9c, 0x4a, 0xab, 0x5e, 0x53, 0xaa, 0xec, 0x57, 0xae, 0x90, 0x19, 0xa7,
+	0x3f, 0x3c, 0xa0, 0x6e, 0xde, 0x80, 0x7a, 0x70, 0x5b, 0xbb, 0xa7, 0x10, 0xcf, 0x7c, 0x3a, 0xc8,
+}
+
+func swap(b []byte) {
+	for i := 0; i < len(b); i += 4 {
+		b[i + 0], b[i + 3] = b[i + 3], b[i + 0]
+		b[i + 1], b[i + 2] = b[i + 2], b[i + 1]
+	}
+}
+
+func reverse(b []byte) {
+	for i := 0; i < len(b) / 2; i++ {
+		n := len(b) - i - 1
+		b[i], b[n] = b[n], b[i]
+	}
+}
+
+var b = []byte{
+	0xb3, 0x59, 0x44, 0x8c, 0xe7, 0xdd, 0x47, 0xa3, 0x5a, 0x10, 0x01, 0xdc, 0x45, 0x8b, 0x1e, 0xb1,
+}
+
+var need = []byte{
+	0x27, 0x5d, 0xba, 0x35, 0xbf, 0xe0, 0x2f, 0xf9, 0x00, 0x00, 0x00, 0x20, 0x4b, 0xd0, 0x0e, 0x82,
+}
+
+func do(b []byte, key []byte, funcs ...func([]byte)) {
+	a, _ := aes.NewCipher(key)
+	for _, f := range funcs {
+		f(b)
+	}
+	a.Decrypt(b, b)
+	for i := len(funcs) - 1; i > 0; i-- {
+		f := funcs[i]
+		f(b)
+	}
+	fmt.Print(hex.Dump(b))
+}
+
+func run(b []byte, key []byte) {
+	c := make([]byte, len(b))
+
+	fmt.Println("		raw b")
+	copy(c, b)
+	do(c, key)
+
+	fmt.Println("		swap b")
+	copy(c, b)
+	do(c, key, swap)
+
+	fmt.Println("		reverse b")
+	copy(c, b)
+	do(c, key, reverse)
+
+	fmt.Println("		swap reverse b")
+	copy(c, b)
+	do(c, key, swap, reverse)
+}
+
+func runkey(b []byte, key []byte) {
+	fmt.Println("	raw key")
+	run(b, key)
+
+	fmt.Println("	swap key")
+	swap(key)
+	run(b, key)
+	swap(key)
+
+	fmt.Println("	reverse key")
+	reverse(key)
+	run(b, key)
+	reverse(key)
+
+	fmt.Println("	swap reverse key")
+	swap(key)
+	reverse(key)
+	run(b, key)
+	reverse(key)
+	swap(key)
+}
+
+func main() {
+	fmt.Print(hex.Dump(need))
+
+	key := make([]byte, 32)
+
+	fmt.Println("raw key")
+	copy(key, pi)
+	runkey(b, key)
+
+	fmt.Println("key halves swapped")
+	copy(key, pi[16:])
+	copy(key[16:], pi)
+	runkey(b, key)
+}
