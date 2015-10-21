@@ -30,16 +30,24 @@ func swap(b []byte) {
 	}
 }
 
+func fliphalves(b []byte) {
+	c := make([]byte, len(b))
+	copy(c, b[16:])
+	copy(c[16:], b)
+	copy(b, c)
+}
+
 func decryptDEK(dek []byte, key []byte) error {
+	fliphalves(key)
 	reverse(key)
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		return err
 	}
 	for i := 0; i < len(dek); i += 16 {
-		reverse(dek[i:i + 16])
+		swap(dek[i:i + 16])
 		c.Decrypt(dek[i:], dek[i:])
-		reverse(dek[i:i + 16])
+		// don't swap back; it'll be correct this way
 	}
 	return nil
 }
@@ -53,8 +61,6 @@ type Initio struct {
 var errWrongChip = fmt.Errorf("wrong chip")
 
 func ReadInitio(dek []byte) (j *Initio, err error) {
-fmt.Printf("%s\n", hex.Dump(dek))
-
 	i := 0x190
 	if dek[i] == 0x27 &&
 		dek[i + 1] == 0x5D &&
@@ -88,14 +94,17 @@ func main() {
 	decryptDEK(dek, pi)
 	j, err := ReadInitio(dek)
 	if err != nil { panic(err) }
-	key := j.Key[:]
-//	reverse(key)
+	key := make([]byte, len(j.Key))
+	copy(key, j.Key[:])
+	fliphalves(key)
+	reverse(key)
 	c, _ := aes.NewCipher(key)
 	for i := 0; i < len(block); i += 16 {
 //		reverse(block[i:i + 16])
-//		swap(block[i:i + 16])
+		swap(block[i:i + 16])
 		c.Decrypt(block[i:], block[i:])
-//		swap(block[i:i + 16])
+		// we DO need to swap after this though
+		swap(block[i:i + 16])
 	}
 	fmt.Println(hex.Dump(block))
 }
