@@ -17,7 +17,7 @@ import (
 // 		Ask the user for their password
 // 		TryUserPassword()
 // Else
-// 	TryWithoutKEK()
+// 	GetWithoutKEK()
 // Seek back to start
 // While there are sectors to read
 // 	Read a sector
@@ -67,6 +67,6 @@ func TryUserPassword(bridge Bridge, keySector []byte, password []byte) *aes.Ciph
 	panic("unreachable")
 }
 
-func TryWithoutKEK(bridge Bridge, keySector []byte) *aes.Cipher {
+func GetWithoutKEK(bridge Bridge, keySector []byte) *aes.Cipher {
 	return tryKEK(bridge, keySector, nil)
 }
