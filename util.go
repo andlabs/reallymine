@@ -5,6 +5,8 @@ import (
 	"crypto/aes"
 )
 
+const SectorSize = 512
+
 // Byte shuffling.
 
 func Reverse(b []byte) {

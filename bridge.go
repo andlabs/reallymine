@@ -15,7 +15,7 @@ type Bridge interface {
 
 var Bridges []Bridge
 
-func Identify(possibleKeySector []byte) Bridge {
+func IdentifyKeySector(possibleKeySector []byte) Bridge {
 	for _, b := range Bridges {
 		if b.Is(possibleKeySector) {
 			return b
