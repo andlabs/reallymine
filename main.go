@@ -4,11 +4,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"crypto/aes"
+	"crypto/cipher"
 )
 
 func main() {
-	var c *aes.Cipher
+	var c cipher.Block
 
 	f, _ := os.Open(os.Args[1])
 	fout, _ := os.Create(os.Args[2])

@@ -3,7 +3,7 @@ package main
 
 import (
 	"bytes"
-	"crypto/aes"
+	"crypto/cipher"
 	"encoding/binary"
 )
 
@@ -37,7 +37,7 @@ func (JMicron) decryptKeySector(keySector []byte, kek []byte) {
 
 // the DEK can be anywhere in the decrypted key sector
 func (JMicron) findDEK(keySector []byte) (offset int) {
-	for i = 0; i < len(keySector)-4; i++ {
+	for i := 0; i < len(keySector)-4; i++ {
 		if keySector[i+0] == 'D' &&
 			keySector[i+1] == 'E' &&
 			keySector[i+2] == 'K' &&
@@ -52,7 +52,7 @@ func (JMicron) findDEK(keySector []byte) (offset int) {
 // But I recognize the hex numbers as addresses in the JMicron chip's
 // RAM. These RAM addresses followed me around throughout
 // disassembly, and I *knew* they were suspicious, damnit!
-type jmicromDEKBlock struct {
+type jmicronDEKBlock struct {
 	Magic     [4]byte // 'DEK1'
 	Checksum  uint16
 	Unknown   uint16
@@ -91,7 +91,7 @@ func (JMicron) extractDEK(keySector []byte, offset int) []byte {
 	return dek
 }
 
-func (j JMicron) CreateDecrypter(keySector []byte, kek []byte) (cipher *aes.Cipher) {
+func (j JMicron) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 	// make a copy of these so the originals aren't touched
 	keySector = DupBytes(keySector)
 	kek = DupBytes(kek)
@@ -104,7 +104,7 @@ func (j JMicron) CreateDecrypter(keySector []byte, kek []byte) (cipher *aes.Ciph
 	return NewAES(j.extractDEK(keySector, offset))
 }
 
-func (JMicron) Decrypt(c *aes.Cipher, b []byte) {
+func (JMicron) Decrypt(c cipher.Block, b []byte) {
 	for i := 0; i < len(b); i += 16 {
 		block := b[i : i+16]
 		Reverse(block)

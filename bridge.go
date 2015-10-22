@@ -2,15 +2,15 @@
 package main
 
 import (
-	"crypto/aes"
+	"crypto/cipher"
 )
 
 type Bridge interface {
 	Name() string
 	Is(keySector []byte) bool
 	NeedsKEK() bool
-	CreateDecrypter(keySector []byte, kek []byte) (cipher *aes.Cipher)
-	Decrypt(c *aes.Cipher, b []byte)
+	CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block)
+	Decrypt(c cipher.Block, b []byte)
 }
 
 var Bridges []Bridge

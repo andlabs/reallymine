@@ -3,7 +3,7 @@ package main
 
 import (
 	"io"
-	"crypto/aes"
+	"crypto/cipher"
 )
 
 // These do the actual work of recovery.
@@ -54,19 +54,19 @@ var DefaultKEK = []byte{
 	0xFC, 0xEB, 0xEA, 0x6D, 0x9A, 0xCA, 0x76, 0x86, 0xCD, 0xC7, 0xB9, 0xD9, 0xBC, 0xC7, 0xCD, 0x86,
 }
 
-func tryKEK(bridge Bridge, keySector []byte, kek []byte) *aes.Cipher {
+func tryKEK(bridge Bridge, keySector []byte, kek []byte) cipher.Block {
 	return bridge.CreateDecrypter(keySector, kek)
 }
 
-func TryDefaultKEK(bridge Bridge, keySector []byte) *aes.Cipher {
+func TryDefaultKEK(bridge Bridge, keySector []byte) cipher.Block {
 	return tryKEK(bridge, keySector, DefaultKEK)
 }
 
-func TryUserPassword(bridge Bridge, keySector []byte, password []byte) *aes.Cipher {
+func TryUserPassword(bridge Bridge, keySector []byte, password []byte) cipher.Block {
 	BUG("TODO UNIMPLEMENTED")
 	panic("unreachable")
 }
 
-func GetWithoutKEK(bridge Bridge, keySector []byte) *aes.Cipher {
+func GetWithoutKEK(bridge Bridge, keySector []byte) cipher.Block {
 	return tryKEK(bridge, keySector, nil)
 }

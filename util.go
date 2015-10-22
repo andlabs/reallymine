@@ -3,6 +3,7 @@ package main
 
 import (
 	"crypto/aes"
+	"crypto/cipher"
 )
 
 const SectorSize = 512
@@ -49,7 +50,7 @@ func DupBytes(b []byte) []byte {
 	return c
 }
 
-func NewAES(key []byte) *aes.Cipher {
+func NewAES(key []byte) cipher.Block {
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		BUG("error creating AES cipher in NewAES(): %v", err)
