@@ -4,12 +4,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"crypto/cipher"
 )
 
 func main() {
-	var c cipher.Block
-
 	f, _ := os.Open(os.Args[1])
 	fout, _ := os.Create(os.Args[2])
 
@@ -21,13 +18,18 @@ func main() {
 	}
 	fmt.Println("found " + bridge.Name())
 
-	if bridge.NeedsKEK() {
-		c = TryDefaultKEK(bridge, keySector)
-		for c == nil {
-			panic("TODO")
+	c := TryGetDecrypter(keySector, bridge, func(firstTime bool) []byte {
+		if firstTime {
+			fmt.Println("We need the drive's password to decrypt your drive.")
+		} else {
+			fmt.Println("Password incorrect.")
 		}
-	} else {
-		c = GetWithoutKEK(bridge, keySector)
+		// TODO
+		return nil
+	})
+	if c == nil {
+		fmt.Println("User aborted.")
+		return
 	}
 
 	_, err := f.Seek(0, 0)

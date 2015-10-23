@@ -11,13 +11,11 @@ import (
 // Open encrypted medium
 // Seek to the end of the medium, get its position (media size)
 // FindKeySectorAndBridge(medium, media size), assume it succeeded
-// If the bridge needs a KEK
-// 	TryDefaultKEK()
-// 	While that fails
-// 		Ask the user for their password
-// 		TryUserPassword()
-// Else
-// 	GetWithoutKEK()
+// Write a function to ask for the user password
+// 	It takes a bool; if true, this is the first time; if false, the password was wrong
+// 	It should return nil (NOT an empty slice!) if the user wants to abort the procedure
+// TryGetDecrypter(that function)
+// If that returns nil, the user aborted the operation; stop
 // Seek back to start
 // While there are sectors to read
 // 	Read a sector
@@ -54,19 +52,24 @@ var DefaultKEK = []byte{
 	0xFC, 0xEB, 0xEA, 0x6D, 0x9A, 0xCA, 0x76, 0x86, 0xCD, 0xC7, 0xB9, 0xD9, 0xBC, 0xC7, 0xCD, 0x86,
 }
 
-func tryKEK(bridge Bridge, keySector []byte, kek []byte) cipher.Block {
-	return bridge.CreateDecrypter(keySector, kek)
-}
+func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime bool) []byte) (c cipher.Block) {
+	try := func(keySector []byte, bridge Bridge, kek []byte) cipher.Block {
+		return bridge.CreateDecrypter(keySector, kek)
+	}
 
-func TryDefaultKEK(bridge Bridge, keySector []byte) cipher.Block {
-	return tryKEK(bridge, keySector, DefaultKEK)
-}
+	if !bridge.NeedsKEK() {
+		return try(keySector, bridge, nil)			// should not return nil
+	}
 
-func TryUserPassword(bridge Bridge, keySector []byte, password []byte) cipher.Block {
-	BUG("TODO UNIMPLEMENTED")
-	panic("unreachable")
-}
-
-func GetWithoutKEK(bridge Bridge, keySector []byte) cipher.Block {
-	return tryKEK(bridge, keySector, nil)
+	c = try(keySector, bridge, DefaultKEK)
+	firstTime := true
+	for c == nil {			// whlie the default KEK didn't work or the user password is wrong
+		pw := askPassword(firstTime)
+		if pw == nil {		// user aborted
+			return nil
+		}
+		// TODO
+		firstTime = false	// in case the password was wrong
+	}
+	return c
 }
