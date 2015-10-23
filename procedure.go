@@ -13,7 +13,7 @@ import (
 // FindKeySectorAndBridge(medium, media size), assume it succeeded
 // Write a function to ask for the user password
 // 	It takes a bool; if true, this is the first time; if false, the password was wrong
-// 	It should return nil (NOT an empty slice!) if the user wants to abort the procedure
+// 	It should return nil, true if the user cancelled the operation or non-nil, false otherwise
 // TryGetDecrypter(that function)
 // If that returns nil, the user aborted the operation; stop
 // Seek back to start
@@ -52,7 +52,7 @@ var DefaultKEK = []byte{
 	0xFC, 0xEB, 0xEA, 0x6D, 0x9A, 0xCA, 0x76, 0x86, 0xCD, 0xC7, 0xB9, 0xD9, 0xBC, 0xC7, 0xCD, 0x86,
 }
 
-func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime bool) []byte) (c cipher.Block) {
+func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime bool) (password []byte, cancelled bool)) (c cipher.Block) {
 	try := func(keySector []byte, bridge Bridge, kek []byte) cipher.Block {
 		return bridge.CreateDecrypter(keySector, kek)
 	}
@@ -64,11 +64,12 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 	c = try(keySector, bridge, DefaultKEK)
 	firstTime := true
 	for c == nil { // whlie the default KEK didn't work or the user password is wrong
-		pw := askPassword(firstTime)
-		if pw == nil { // user aborted
+		password, cancelled := askPassword(firstTime)
+		if cancelled { // user aborted
 			return nil
 		}
 		// TODO
+		_ = password
 		firstTime = false // in case the password was wrong
 	}
 	return c
