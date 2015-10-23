@@ -37,13 +37,7 @@ func main() {
 		// TODO
 		panic(err)
 	}
-	sector := make([]byte, SectorSize)
-	for {
-		_, err := f.Read(sector)
-		if err != nil {
-			break
-		}
-		bridge.Decrypt(c, sector)
-		fout.Write(sector)
+	for DecryptNextSector(f, fout, bridge, c) {
+		// TODO
 	}
 }

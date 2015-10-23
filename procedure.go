@@ -17,10 +17,8 @@ import (
 // TryGetDecrypter(that function)
 // If that returns nil, the user aborted the operation; stop
 // Seek back to start
-// While there are sectors to read
-// 	Read a sector
-// 	Decrypt sector using the bridge's Decrypt() method
-// 	Write it back
+// for DecryptNextSector(...)
+// 	Update a progress bar or something
 
 // TODO make this stop early, giving the user the option to continue
 func FindKeySectorAndBridge(media io.ReaderAt, startAt int64) (keySector []byte, bridge Bridge) {
@@ -73,4 +71,20 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 		firstTime = false // in case the password was wrong
 	}
 	return c
+}
+
+func DecryptNextSector(from io.Reader, to io.Writer, bridge Bridge, c cipher.Block) (more bool) {
+	sector := make([]byte, SectorSize)
+	_, err := io.ReadFull(from, sector)
+	if err == io.EOF {
+		return false			// no more
+	} else if err != nil {
+		BUG("error reading sector in DecryptNextSector(): %v", err)
+	}
+	bridge.Decrypt(c, sector)
+	_, err = to.Write(sector)
+	if err != nil {
+		BUG("error writing decrypted sector in DecryptNextSector(): %v", err)
+	}
+	return true
 }
