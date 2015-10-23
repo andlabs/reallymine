@@ -25,7 +25,7 @@ func main() {
 			fmt.Println("Password incorrect.")
 		}
 		// TODO
-		return nil, true
+		return []byte("abc123"), false
 	})
 	if c == nil {
 		fmt.Println("User aborted.")
