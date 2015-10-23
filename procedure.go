@@ -2,8 +2,8 @@
 package main
 
 import (
-	"io"
 	"crypto/cipher"
+	"io"
 )
 
 // These do the actual work of recovery.
@@ -39,7 +39,7 @@ func FindKeySectorAndBridge(media io.ReaderAt, startAt int64) (keySector []byte,
 		// not the key sector; keep going
 		pos -= SectorSize
 	}
-	return nil, nil		// no key sector found :(
+	return nil, nil // no key sector found :(
 }
 
 // I don't know when this is used, but have it here it anyway
@@ -58,18 +58,18 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 	}
 
 	if !bridge.NeedsKEK() {
-		return try(keySector, bridge, nil)			// should not return nil
+		return try(keySector, bridge, nil) // should not return nil
 	}
 
 	c = try(keySector, bridge, DefaultKEK)
 	firstTime := true
-	for c == nil {			// whlie the default KEK didn't work or the user password is wrong
+	for c == nil { // whlie the default KEK didn't work or the user password is wrong
 		pw := askPassword(firstTime)
-		if pw == nil {		// user aborted
+		if pw == nil { // user aborted
 			return nil
 		}
 		// TODO
-		firstTime = false	// in case the password was wrong
+		firstTime = false // in case the password was wrong
 	}
 	return c
 }

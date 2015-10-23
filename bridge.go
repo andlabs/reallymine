@@ -21,5 +21,5 @@ func IdentifyKeySector(possibleKeySector []byte) Bridge {
 			return b
 		}
 	}
-	return nil		// not a (known) key sector
+	return nil // not a (known) key sector
 }
