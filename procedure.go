@@ -68,7 +68,7 @@ func DecryptNextSector(from io.Reader, to io.Writer, bridge Bridge, c cipher.Blo
 	sector := make([]byte, SectorSize)
 	_, err := io.ReadFull(from, sector)
 	if err == io.EOF {
-		return false			// no more
+		return false // no more
 	} else if err != nil {
 		BUG("error reading sector in DecryptNextSector(): %v", err)
 	}

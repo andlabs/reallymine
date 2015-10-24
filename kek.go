@@ -20,7 +20,7 @@ func brokensum(b []byte) []byte {
 	h := sha256.New()
 	if len(b) > 64 {
 		first := b[:64]
-		last := b[len(b) - (len(b) % 64):]
+		last := b[len(b)-(len(b)%64):]
 		// Oops, this is really what Unlock.exe does.
 		// The memcpy() that copies from b into the blocking
 		// buffer is only run once, outside the loop.
@@ -48,11 +48,11 @@ func brokensum(b []byte) []byte {
 func saltAndUTF16(password string) []byte {
 	sp := "WDC." + password
 	u16 := utf16.Encode([]rune(sp))
-	p := make([]byte, 2 * len(u16))
+	p := make([]byte, 2*len(u16))
 	for i := 0; i < len(u16); i++ {
 		u := u16[i]
-		p[2 * i] = byte(u & 0xFF)
-		p[2 * i + 1] = byte((u >> 8) & 0xFF)
+		p[2*i] = byte(u & 0xFF)
+		p[2*i+1] = byte((u >> 8) & 0xFF)
 	}
 	return p
 }
