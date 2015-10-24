@@ -18,14 +18,14 @@ func main() {
 	}
 	fmt.Println("found " + bridge.Name())
 
-	c := TryGetDecrypter(keySector, bridge, func(firstTime bool) (password []byte, cancelled bool) {
+	c := TryGetDecrypter(keySector, bridge, func(firstTime bool) (password string, cancelled bool) {
 		if firstTime {
 			fmt.Println("We need the drive's password to decrypt your drive.")
 		} else {
 			fmt.Println("Password incorrect.")
 		}
 		// TODO
-		return []byte("abc123"), false
+		return "abc123", false
 	})
 	if c == nil {
 		fmt.Println("User aborted.")

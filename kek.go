@@ -3,9 +3,7 @@ package main
 
 import (
 	"crypto/sha256"
-"fmt"
-"encoding/hex"
-"unicode/utf16"
+	"unicode/utf16"
 )
 
 // I don't know when this is used, but have it here it anyway
@@ -40,23 +38,28 @@ func brokensum(b []byte) []byte {
 	return h.Sum(nil)
 }
 
-func KEKFromPassword(password []byte) []byte {
-ppw:=utf16.Encode([]rune(string(password)))
-password=make([]byte,2*len(ppw))
-for j:=0;j<len(ppw);j++{
-u16:=ppw[j]
-password[2*j]=byte(u16)
-password[2*j+1]=byte(u16>>8)
+// Yes, that's right folks, Unlock.exe gives us this:
+// 1) Constant salt.
+// 2) The salt is a string.
+// 3) The combined string must be UTF-16 encoded.
+// Since this is Windows software we're talking about, that's
+// UTF-16 little-endian.
+// TODO this function should be improved somehow...
+func saltAndUTF16(password string) []byte {
+	sp := "WDC." + password
+	u16 := utf16.Encode([]rune(sp))
+	p := make([]byte, 2 * len(u16))
+	for i := 0; i < len(u16); i++ {
+		u := u16[i]
+		p[2 * i] = byte(u & 0xFF)
+		p[2 * i + 1] = byte((u >> 8) & 0xFF)
+	}
+	return p
 }
-	salted := make([]byte, 8 + len(password))
-	salted[0] = 'W'
-	salted[2] = 'D'
-	salted[4] = 'C'
-	salted[6] = '.'
-	copy(salted[8:], password)
-fmt.Println(hex.Dump(salted))
 
-	kek := brokensum(salted)
+// Don't mind the weird loop here; we're imitating Unlock.exe.
+func KEKFromPassword(password string) []byte {
+	kek := brokensum(saltAndUTF16(password))
 	i := 999
 	for {
 		kek = brokensum(kek)
@@ -65,7 +68,5 @@ fmt.Println(hex.Dump(salted))
 			break
 		}
 	}
-
-fmt.Println(hex.Dump(kek))
 	return kek
 }

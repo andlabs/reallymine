@@ -13,7 +13,8 @@ import (
 // FindKeySectorAndBridge(medium, media size), assume it succeeded
 // Write a function to ask for the user password
 // 	It takes a bool; if true, this is the first time; if false, the password was wrong
-// 	It should return nil, true if the user cancelled the operation or non-nil, false otherwise
+// 	It should return "", true if the user cancelled the operation or string, false otherwise
+// 	And yes, the password is a string; see kek.go for details.
 // TryGetDecrypter(that function)
 // If that returns nil, the user aborted the operation; stop
 // Seek back to start
@@ -40,7 +41,7 @@ func FindKeySectorAndBridge(media io.ReaderAt, startAt int64) (keySector []byte,
 	return nil, nil // no key sector found :(
 }
 
-func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime bool) (password []byte, cancelled bool)) (c cipher.Block) {
+func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime bool) (password string, cancelled bool)) (c cipher.Block) {
 	try := func(keySector []byte, bridge Bridge, kek []byte) cipher.Block {
 		return bridge.CreateDecrypter(keySector, kek)
 	}
