@@ -2,8 +2,8 @@
 package main
 
 import (
-	"crypto/cipher"
 	"bytes"
+	"crypto/cipher"
 	"encoding/binary"
 )
 
@@ -37,9 +37,9 @@ func (Initio) decryptKeySector(keySector []byte, kek []byte) {
 }
 
 type initioDEKBlock struct {
-	Magic		[4]byte		// 27 5D BA 35
-	Unknown		[8]byte
-	Key			[32]byte		// stored as little-endian longs
+	Magic   [4]byte // 27 5D BA 35
+	Unknown [8]byte
+	Key     [32]byte // stored as little-endian longs
 }
 
 func (d *initioDEKBlock) valid() bool {
@@ -71,11 +71,11 @@ func (i Initio) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 
 	i.decryptKeySector(keySector, kek)
 	dekblock := i.extractDEKBlock(keySector)
-	if !dekblock.valid() {		// wrong KEK
+	if !dekblock.valid() { // wrong KEK
 		return nil
 	}
 	dek := dekblock.Key[:]
-	SwapLongs(dek)		// undo the little-endian-ness
+	SwapLongs(dek) // undo the little-endian-ness
 	SwapHalves(dek)
 	Reverse(dek)
 	return NewAES(dek)
