@@ -40,16 +40,6 @@ func FindKeySectorAndBridge(media io.ReaderAt, startAt int64) (keySector []byte,
 	return nil, nil // no key sector found :(
 }
 
-// I don't know when this is used, but have it here it anyway
-var DefaultKEK128 = []byte{
-	0x03, 0x14, 0x15, 0x92, 0x65, 0x35, 0x89, 0x79, 0x2B, 0x99, 0x2D, 0xDF, 0xA2, 0x32, 0x49, 0xD6,
-}
-
-var DefaultKEK = []byte{
-	0x03, 0x14, 0x15, 0x92, 0x65, 0x35, 0x89, 0x79, 0x32, 0x38, 0x46, 0x26, 0x43, 0x38, 0x32, 0x79,
-	0xFC, 0xEB, 0xEA, 0x6D, 0x9A, 0xCA, 0x76, 0x86, 0xCD, 0xC7, 0xB9, 0xD9, 0xBC, 0xC7, 0xCD, 0x86,
-}
-
 func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime bool) (password []byte, cancelled bool)) (c cipher.Block) {
 	try := func(keySector []byte, bridge Bridge, kek []byte) cipher.Block {
 		return bridge.CreateDecrypter(keySector, kek)
@@ -66,8 +56,8 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 		if cancelled { // user aborted
 			return nil
 		}
-		// TODO
-		_ = password
+		kek := KEKFromPassword(password)
+		c = try(keySector, bridge, kek)
 		firstTime = false // in case the password was wrong
 	}
 	return c
