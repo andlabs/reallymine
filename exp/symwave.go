@@ -56,14 +56,14 @@ var symwaveKEKWrappingKey = []byte{
 func (Symwave) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 	var ks symwaveKeySector
 
-	r := bytes.NewReader(ks)
+	r := bytes.NewReader(keySector)
 	// This is definitely correct; the 68000 is big endian.
 	err := binary.Read(r, binary.BigEndian, &ks)
 	if err != nil {
 		BUG("error reading key sector into structure in Symwave.CreateDecrypter(): %v", err)
 	}
 
-	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, ks.WrappedKek[:])
+	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, ks.WrappedKEK[:])
 	if err != nil {
 		BUG("error unwrapping KEK in Symwave.CreateDecrypter(): %v", err)
 	}
