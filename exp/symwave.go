@@ -35,7 +35,7 @@ func (Symwave) NeedsKEK() bool {
 // The KEK is only stored as one.
 type symwaveKeySector struct {
 	Magic		[4]byte
-	Unused		[0xC]byte
+	Unknown		[0xC]byte
 	WrappedDEK1	[0x28]byte
 	WrappedDEK2	[0x28]byte
 	WrappedKEK	[0x28]byte
