@@ -39,6 +39,7 @@ type plxKeySector struct {
 // Locate the second copy of the SInE block and test that one too.
 // I need to find out if it will /always/ be at the same place or nt
 
+// TODO how does the chip know the KEK was valid?
 func (PLX) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 	var ks plxKeySector
 
