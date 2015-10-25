@@ -28,6 +28,11 @@ func usage() {
 	os.Exit(1)
 }
 
+// 50MB at a time
+const NumSectorsAtATime = 102400
+const NumBytesAtATime = NumSectorsAtATime * SectorSize
+const NumMBAtATime = NumBytesAtATime / 1024 / 1024
+
 func RealMain() {
 	if len(os.Args) != 3 {
 		usage()
@@ -42,6 +47,7 @@ func RealMain() {
 	defer in.Close()
 
 	// TODO make sure infile is not a device
+	// we must outright forbid it because we aren't running sector-to-sector anymore
 
 	insize, err := in.Seek(0, 2)
 	if err != nil {
@@ -99,20 +105,12 @@ func RealMain() {
 	}
 
 	fmt.Printf("Beginning decryption!\n")
-	insize01p := (insize / SectorSize) / 1000
+	sectors := make([]byte, NumSectorsAtATime * SectorSize)
 	n := int64(0)
-	p := 0.0
-	for {
-		more := DecryptNextSector(in, out, bridge, c)
-		if !more {
-			break
-		}
-		n++
-		if n == insize01p {
-			n = 0
-			p += 0.1
-			fmt.Printf("%.1f%% complete.\n", p)
-		}
+	inmb := insize / 1024 / 1024
+	for DecryptNext(in, out, bridge, c, sectors) {
+		n += NumMBAtATime
+		fmt.Printf("%d MB / %d MB complete.\n", n, inmb)
 	}
 
 	fmt.Printf("Completed successfully!\n")
@@ -149,7 +147,8 @@ func QuickTestMain() {
 		// TODO
 		panic(err)
 	}
-	for DecryptNextSector(f, fout, bridge, c) {
+	sector := make([]byte, SectorSize)
+	for DecryptNext(f, fout, bridge, c, sector) {
 		// TODO
 	}
 }

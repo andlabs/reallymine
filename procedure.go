@@ -18,7 +18,8 @@ import (
 // TryGetDecrypter(that function)
 // If that returns nil, the user aborted the operation; stop
 // Seek back to start
-// for DecryptNextSector(...)
+// Allocate a buffer of the appropriate size of each block to decrypt at a time
+// for DecryptNext(...)
 // 	Update a progress bar or something
 
 // TODO make this stop early, giving the user the option to continue
@@ -64,18 +65,17 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 	return c
 }
 
-func DecryptNextSector(from io.Reader, to io.Writer, bridge Bridge, c cipher.Block) (more bool) {
-	sector := make([]byte, SectorSize)
-	_, err := io.ReadFull(from, sector)
+func DecryptNext(from io.Reader, to io.Writer, bridge Bridge, c cipher.Block, sectors []byte) (more bool) {
+	_, err := io.ReadFull(from, sectors)
 	if err == io.EOF {
 		return false // no more
 	} else if err != nil {
-		BUG("error reading sector in DecryptNextSector(): %v", err)
+		BUG("error reading sectors in DecryptNextSector(): %v", err)
 	}
-	bridge.Decrypt(c, sector)
-	_, err = to.Write(sector)
+	bridge.Decrypt(c, sectors)
+	_, err = to.Write(sectors)
 	if err != nil {
-		BUG("error writing decrypted sector in DecryptNextSector(): %v", err)
+		BUG("error writing decrypted sector in DecryptNext(): %v", err)
 	}
 	return true
 }
