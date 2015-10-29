@@ -66,12 +66,21 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 }
 
 func DecryptNext(from io.Reader, to io.Writer, bridge Bridge, c cipher.Block, sectors []byte) (more bool) {
-	_, err := io.ReadFull(from, sectors)
+	n, err := from.Read(sectors)
 	if err == io.EOF {
-		return false // no more
-	} else if err != nil {
+		if n == 0 {
+			return false		// no more
+		}
+		// otherwise pretend no error
+		// the final read might be smaller than the buffer
+		// the next one should return err == io.EOF and n == 0
+		err = nil
+	}
+	if err != nil {
 		BUG("error reading sectors in DecryptNextSector(): %v", err)
 	}
+	// handle the final block properly if it's shorter
+	sectors = sectors[:n]
 	bridge.Decrypt(c, sectors)
 	_, err = to.Write(sectors)
 	if err != nil {
