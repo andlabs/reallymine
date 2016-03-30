@@ -7,11 +7,6 @@ import (
 	"encoding/binary"
 
 	"github.com/mendsley/gojwe"
-
-"fmt"
-"encoding/hex"
-"os"
-"io/ioutil"
 )
 
 type Symwave struct{}
@@ -100,16 +95,6 @@ func (Symwave) Decrypt(c cipher.Block, b []byte) {
 	}
 }
 
-/*
 func init() {
 	Bridges = append(Bridges, Symwave{})
-}
-*/
-
-func main() {
-	b, _ := ioutil.ReadAll(os.Stdin)
-	d := Symwave{}.CreateDecrypter(b, nil)
-	b, _ = ioutil.ReadFile(os.Args[1])
-	Symwave{}.Decrypt(d, b)
-	fmt.Println(hex.Dump(b))
 }
