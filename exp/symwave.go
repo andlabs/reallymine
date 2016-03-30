@@ -21,10 +21,11 @@ func (Symwave) Name() string {
 }
 
 func (Symwave) Is(keySector []byte) bool {
-	return keySector[0] == 'S' &&
-		keySector[1] == 'Y' &&
-		keySector[2] == 'M' &&
-		keySector[3] == 'W'
+	// note: stored little endian despite being a big endian system
+	return keySector[3] == 'S' &&
+		keySector[2] == 'Y' &&
+		keySector[1] == 'M' &&
+		keySector[0] == 'W'
 }
 
 func (Symwave) NeedsKEK() bool {
@@ -57,36 +58,46 @@ func (Symwave) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 	var ks symwaveKeySector
 
 	r := bytes.NewReader(keySector)
-	// This is definitely correct; the 68000 is big endian.
-	err := binary.Read(r, binary.BigEndian, &ks)
+	// Again, stored as little endian for some reason; this is a 68000 system so it should be big endian...
+	err := binary.Read(r, binary.LittleEndian, &ks)
 	if err != nil {
 		BUG("error reading key sector into structure in Symwave.CreateDecrypter(): %v", err)
 	}
 
-	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, ks.WrappedKEK[:])
+	// And again with the endianness stuff...
+	wrapped := ks.WrappedKEK[:]
+	SwapLongs(wrapped)
+	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, wrapped)
 	if err != nil {
 		BUG("error unwrapping KEK in Symwave.CreateDecrypter(): %v", err)
 	}
 
-	dek1, err := gojwe.AesKeyUnwrap(kek, ks.WrappedDEK1[:])
+	wrapped = ks.WrappedDEK1[:]
+	SwapLongs(wrapped)
+	dek1, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
 		BUG("error unwrapping DEK part 1 in Symwave.CreateDecrypter(): %v", err)
 	}
 
-	dek2, err := gojwe.AesKeyUnwrap(kek, ks.WrappedDEK2[:])
+	wrapped = ks.WrappedDEK2[:]
+	SwapLongs(wrapped)
+	dek2, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
 		BUG("error unwrapping DEK part 2 in Symwave.CreateDecrypter(): %v", err)
 	}
 
-fmt.Printf("dek1:\n")
-fmt.Print(hex.Dump(dek1))
-fmt.Printf("dek2:\n")
-fmt.Print(hex.Dump(dek2))
-panic("not done yet")
+	_ = dek2
+	// And finally we just need one last endian correction...
+	SwapLongs(dek1)
+	return NewAES(dek1)
 }
 
 func (Symwave) Decrypt(c cipher.Block, b []byte) {
-	// TODO
+	for i := 0; i < len(b); i += 16 {
+		block := b[i : i+16]
+		// ...and we can just use block as-is!
+		c.Decrypt(block, block)
+	}
 }
 
 /*
@@ -97,5 +108,8 @@ func init() {
 
 func main() {
 	b, _ := ioutil.ReadAll(os.Stdin)
-	Symwave{}.CreateDecrypter(b, nil)
+	d := Symwave{}.CreateDecrypter(b, nil)
+	b, _ = ioutil.ReadFile(os.Args[1])
+	Symwave{}.Decrypt(d, b)
+	fmt.Println(hex.Dump(b))
 }
