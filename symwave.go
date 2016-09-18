@@ -84,7 +84,7 @@ func (Symwave) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 	_ = dek2
 	// And finally we just need one last endian correction...
 	SwapLongs(dek1)
-	return NewAES(dek1)
+	return dek1, nil
 }
 
 func (Symwave) Decrypt(c cipher.Block, b []byte) {

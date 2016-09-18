@@ -4,6 +4,7 @@ package main
 import (
 	"bytes"
 	"crypto/cipher"
+	"crypto/aes"
 	"encoding/binary"
 )
 
@@ -27,7 +28,10 @@ func (Initio) NeedsKEK() bool {
 func (Initio) decryptKeySector(keySector []byte, kek []byte) {
 	SwapHalves(kek)
 	Reverse(kek)
-	kekcipher := NewAES(kek)
+	kekcipher, err := aes.NewCipher(kek)
+	if err != nil {
+		// TODO
+	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
 		SwapLongs(block)
@@ -78,7 +82,7 @@ func (i Initio) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 	SwapLongs(dek) // undo the little-endian-ness
 	SwapHalves(dek)
 	Reverse(dek)
-	return NewAES(dek)
+	return dek, nil
 }
 
 func (Initio) Decrypt(c cipher.Block, b []byte) {

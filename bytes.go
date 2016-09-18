@@ -1,12 +1,7 @@
 // 21 october 2015
 package main
 
-import (
-	"crypto/aes"
-	"crypto/cipher"
-)
-
-// Byte shuffling.
+// TODO get rid of the BUG()s?
 
 func Reverse(b []byte) {
 	if len(b)%2 == 1 {
@@ -40,18 +35,8 @@ func SwapHalves(b []byte) {
 	copy(b, c)
 }
 
-// Other functions.
-
 func DupBytes(b []byte) []byte {
 	c := make([]byte, len(b))
 	copy(c, b)
-	return c
-}
-
-func NewAES(key []byte) cipher.Block {
-	c, err := aes.NewCipher(key)
-	if err != nil {
-		BUG("error creating AES cipher in NewAES(): %v", err)
-	}
 	return c
 }

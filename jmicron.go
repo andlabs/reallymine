@@ -4,6 +4,7 @@ package main
 import (
 	"bytes"
 	"crypto/cipher"
+	"crypto/aes"
 	"encoding/binary"
 )
 
@@ -26,7 +27,10 @@ func (JMicron) NeedsKEK() bool {
 
 func (JMicron) decryptKeySector(keySector []byte, kek []byte) {
 	Reverse(kek)
-	kekcipher := NewAES(kek)
+	kekcipher, err := aes.NewCipher(kek)
+	if err != nil {
+		// TODO
+	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
 		Reverse(block)
@@ -101,7 +105,7 @@ func (j JMicron) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) 
 	if offset == -1 { // wrong KEK
 		return nil
 	}
-	return NewAES(j.extractDEK(keySector, offset))
+	return j.extractDEK(keySector, offset)
 }
 
 func (JMicron) Decrypt(c cipher.Block, b []byte) {
