@@ -9,7 +9,7 @@ type Bridge interface {
 	Name() string
 	Is(keySector []byte) bool
 	NeedsKEK() bool
-	CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block)
+	ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error)
 	Decrypt(c cipher.Block, b []byte)
 }
 
