@@ -1,11 +1,9 @@
 // 21 october 2015
 package main
 
-// TODO get rid of the BUG()s?
-
 func Reverse(b []byte) {
 	if len(b)%2 == 1 {
-		BUG("Reverse() called with odd-sized slice")
+		panic("Reverse() called with odd-sized slice")
 	}
 	for i := 0; i < len(b)/2; i++ {
 		n := len(b) - i - 1
@@ -15,7 +13,7 @@ func Reverse(b []byte) {
 
 func SwapLongs(b []byte) {
 	if len(b)%4 != 0 {
-		BUG("SwapLongs() called with len(b) not a multiple of 4")
+		panic("SwapLongs() called with len(b) not a multiple of 4")
 	}
 	for i := 0; i < len(b); i += 4 {
 		b[i+0], b[i+3] = b[i+3], b[i+0]
@@ -26,7 +24,7 @@ func SwapLongs(b []byte) {
 func SwapHalves(b []byte) {
 	n := len(b)
 	if n%2 == 1 {
-		BUG("SwapHalves() called with odd-sized slice")
+		panic("SwapHalves() called with odd-sized slice")
 	}
 	n /= 2
 	c := make([]byte, len(b))
