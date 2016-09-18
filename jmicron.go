@@ -87,7 +87,7 @@ func jmicronExtractDEK(keySector []byte, offset int) ([]byte, error) {
 	}
 
 	if dekblock.KeySize != 0x20 {
-		HELP("The size of the encryption key in your JMicron sector is not known.\nThis means your drive is new to reallymine, and support must be added.\nPlease help us!")
+		return nil, IncompleteImplentation("The size of the encryption key in your JMicron sector (%d) is not known.", dekblock.KeySize)
 	}
 
 	dek := make([]byte, 32)

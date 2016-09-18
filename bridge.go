@@ -26,3 +26,13 @@ func IdentifyKeySector(possibleKeySector []byte) Bridge {
 	}
 	return nil // not a (known) key sector
 }
+
+type IncompleteImplementationError string
+
+func IncompleteImplementation(format string, args ...interface{}) IncompleteImplementationError {
+	return IncompleteImplementationError(fmt.Sprintf(format, args...))
+}
+
+func (i IncompleteImplementationError) Error() string {
+	return string(i)
+}
