@@ -2,8 +2,11 @@
 package main
 
 import (
+	"fmt"
 	"crypto/cipher"
 )
+
+var ErrWrongKEK = fmt.Errorf("wrong KEK")
 
 type Bridge interface {
 	Name() string

@@ -25,12 +25,12 @@ func (Initio) NeedsKEK() bool {
 	return true
 }
 
-func (Initio) decryptKeySector(keySector []byte, kek []byte) {
+func initioDecryptKeySector(keySector []byte, kek []byte) error {
 	SwapHalves(kek)
 	Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
 	if err != nil {
-		// TODO
+		return err
 	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
@@ -38,6 +38,7 @@ func (Initio) decryptKeySector(keySector []byte, kek []byte) {
 		kekcipher.Decrypt(block, block)
 		// Don't swap back; it'll be correct as-is.
 	}
+	return nil
 }
 
 type initioDEKBlock struct {
@@ -57,28 +58,35 @@ func (d *initioDEKBlock) valid() bool {
 // into the key sector.
 const initioDEKOffset = 0x190
 
-func (Initio) extractDEKBlock(keySector []byte) *initioDEKBlock {
+func initioExtractDEKBlock(keySector []byte) (*initioDEKBlock, error) {
 	dekblock := new(initioDEKBlock)
 	r := bytes.NewReader(keySector[initioDEKOffset:])
-	// The endianness is most likely right.
+	// The endianness is most likely right, but unimportant since every field is [...]byte.
 	err := binary.Read(r, binary.LittleEndian, dekblock)
 	if err != nil {
-		BUG("error reading out DEK block from decrypted key sector in Initio.extractDEK(): %v", err)
+		return nil, err
 	}
-	return dekblock
+	return dekblock, nil
 }
 
-func (i Initio) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
+func (Initio) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
 	// make a copy of these so the originals aren't touched
 	keySector = DupBytes(keySector)
 	kek = DupBytes(kek)
 
-	i.decryptKeySector(keySector, kek)
-	dekblock := i.extractDEKBlock(keySector)
-	if !dekblock.valid() { // wrong KEK
-		return nil
+	err = initioDecryptKeySector(keySector, kek)
+	if err != nil {
+		return nil, err
 	}
-	dek := dekblock.Key[:]
+	dekblock, err := initioExtractDEKBlock(keySector)
+	if err != nil {
+		return nil, err
+	}
+	if !dekblock.valid() {
+		return nil, ErrWrongKEK
+	}
+
+	dek = dekblock.Key[:]
 	SwapLongs(dek) // undo the little-endian-ness
 	SwapHalves(dek)
 	Reverse(dek)

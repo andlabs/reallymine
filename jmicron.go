@@ -25,11 +25,11 @@ func (JMicron) NeedsKEK() bool {
 	return true
 }
 
-func (JMicron) decryptKeySector(keySector []byte, kek []byte) {
+func jmicronDecryptKeySector(keySector []byte, kek []byte) error {
 	Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
 	if err != nil {
-		// TODO
+		return err
 	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
@@ -37,10 +37,11 @@ func (JMicron) decryptKeySector(keySector []byte, kek []byte) {
 		kekcipher.Decrypt(block, block)
 		Reverse(block)
 	}
+	return nil
 }
 
 // the DEK can be anywhere in the decrypted key sector
-func (JMicron) findDEK(keySector []byte) (offset int) {
+func jmicronFindDEK(keySector []byte) (offset int) {
 	for i := 0; i < len(keySector)-4; i++ {
 		if keySector[i+0] == 'D' &&
 			keySector[i+1] == 'E' &&
@@ -71,7 +72,8 @@ type jmicronDEKBlock struct {
 	Remaining [1 + 4 + 2]byte
 }
 
-func (JMicron) extractDEK(keySector []byte, offset int) []byte {
+// TODO make this more like the initio one
+func jmicronExtractDEK(keySector []byte, offset int) ([]byte, error) {
 	var dekblock jmicronDEKBlock
 
 	r := bytes.NewReader(keySector[offset:])
@@ -81,7 +83,7 @@ func (JMicron) extractDEK(keySector []byte, offset int) []byte {
 	// actually needed.
 	err := binary.Read(r, binary.BigEndian, &dekblock)
 	if err != nil {
-		BUG("error reading out DEK block from decrypted key sector in JMicron.extractDEK(): %v", err)
+		return nil, err
 	}
 
 	if dekblock.KeySize != 0x20 {
@@ -92,20 +94,23 @@ func (JMicron) extractDEK(keySector []byte, offset int) []byte {
 	copy(dek[:16], dekblock.Key3EE2[:])
 	copy(dek[16:], dekblock.Key3EF2[:])
 	Reverse(dek)
-	return dek
+	return dek, nil
 }
 
-func (j JMicron) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
+func (JMicron) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
 	// make a copy of these so the originals aren't touched
 	keySector = DupBytes(keySector)
 	kek = DupBytes(kek)
 
-	j.decryptKeySector(keySector, kek)
-	offset := j.findDEK(keySector)
-	if offset == -1 { // wrong KEK
-		return nil
+	err = jmicronDecryptKeySector(keySector, kek)
+	if err != nil {
+		return nil, err
 	}
-	return j.extractDEK(keySector, offset)
+	offset = jmicronFindDEK(keySector)
+	if offset == -1 { // wrong KEK
+		return nil, ErrWrongKEK
+	}
+	return jmicronExtractDEK(keySector, offset)
 }
 
 func (JMicron) Decrypt(c cipher.Block, b []byte) {

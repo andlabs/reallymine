@@ -49,14 +49,14 @@ var symwaveKEKWrappingKey = []byte{
 	0x84, 0x0B, 0x34, 0xFE,
 }
 
-func (Symwave) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
+func (Symwave) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
 	var ks symwaveKeySector
 
 	r := bytes.NewReader(keySector)
 	// Again, stored as little endian for some reason; this is a 68000 system so it should be big endian...
-	err := binary.Read(r, binary.LittleEndian, &ks)
+	err = binary.Read(r, binary.LittleEndian, &ks)
 	if err != nil {
-		BUG("error reading key sector into structure in Symwave.CreateDecrypter(): %v", err)
+		return nil, err
 	}
 
 	// And again with the endianness stuff...
@@ -64,21 +64,21 @@ func (Symwave) CreateDecrypter(keySector []byte, kek []byte) (c cipher.Block) {
 	SwapLongs(wrapped)
 	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, wrapped)
 	if err != nil {
-		BUG("error unwrapping KEK in Symwave.CreateDecrypter(): %v", err)
+		return nil, err
 	}
 
 	wrapped = ks.WrappedDEK1[:]
 	SwapLongs(wrapped)
 	dek1, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
-		BUG("error unwrapping DEK part 1 in Symwave.CreateDecrypter(): %v", err)
+		return nil, err
 	}
 
 	wrapped = ks.WrappedDEK2[:]
 	SwapLongs(wrapped)
 	dek2, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
-		BUG("error unwrapping DEK part 2 in Symwave.CreateDecrypter(): %v", err)
+		return nil, err
 	}
 
 	_ = dek2
