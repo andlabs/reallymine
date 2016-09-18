@@ -6,8 +6,6 @@ import (
 	"crypto/cipher"
 )
 
-const SectorSize = 512
-
 // Byte shuffling.
 
 func Reverse(b []byte) {
