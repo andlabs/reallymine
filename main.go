@@ -55,7 +55,7 @@ func cDumpLast(args []string) error {
 	}
 
 	fmt.Printf("sector starting at %d\n", pos)
-	fmt.Printf("%s\n", hex.Dump(sector))
+	fmt.Printf("%s", hex.Dump(sector))
 	return nil
 }
 
@@ -66,8 +66,66 @@ var dumplast = &Command{
 	Do:			cDumpLast,
 }
 
+type foundKeySector struct {
+	sector	[]byte
+	pos		int64
+	bridge	Bridge
+}
+
+func findKeySector(d *Disk, startAt int64) (fks *foundKeySector, err error) {
+	fks = new(foundKeySector)
+
+	f := func(sector []byte) bool {
+		fks.bridge = IdentifyKeySector(sector)
+		return fks.bridge != nil
+	}
+	fks.sector, fks.pos, err = d.ReverseSearch(startAt, f)
+	if err != nil {
+		return nil, err
+	}
+	if fks.sector == nil {
+		return nil, nil
+	}
+	return fks, nil
+}
+
+func cDumpKSRaw(args []string) error {
+	d, err := OpenDisk(args[0])
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+
+	// TODO add -fakesize option of sorts
+	last, err := d.Size()
+	if err != nil {
+		return err
+	}
+
+	fks, err := findKeySector(d, last)
+	if err != nil {
+		return err
+	}
+	if fks == nil {
+		return fmt.Errorf("key sector not found")
+	}
+
+	fmt.Printf("sector starting at %d\n", fks.pos)
+	fmt.Printf("%s", hex.Dump(fks.sector))
+	fmt.Printf("bridge type %s\n", fks.bridge.Name())
+	return nil
+}
+
+var dumpksraw = &Command{
+	Name:		"dumpksraw",
+	Args:		[]string{"file"},
+	Description:	"Identifies and hexdumps the key sector in file",
+	Do:			cDumpKSRaw,
+}
+
 var Commands = []*Command{
 	dumplast,
+	dumpksraw,
 }
 
 func usage() {
