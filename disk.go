@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"io"
 )
@@ -27,7 +28,7 @@ func (d *Disk) Close() error {
 }
 
 func (d *Disk) Size() (int64, error) {
-	return d.f.Seek(2, 0)
+	return d.f.Seek(0, io.SeekEnd)
 }
 
 // TODO write a function to make this stop early, giving the user the option to continue
@@ -83,13 +84,13 @@ var ErrCancelled = fmt.Errorf("cancelled")
 type ForEachFunc func(sectors []byte) (cancel bool)
 
 func (d *Disk) ForEach(nSectorsPer int, f ForEachFunc) error {
-	_, err := d.f.Seek(0, 0)
+	_, err := d.f.Seek(0, io.SeekStart)
 	if err != nil {
 		return err
 	}
 	sectors := make([]byte, nSectorsPer * SectorSize)
 	for {
-		n, err := from.Read(sectors)
+		n, err := d.f.Read(sectors)
 		if err == io.EOF {
 			break
 		}
@@ -109,7 +110,7 @@ func (d *Disk) ForEach(nSectorsPer int, f ForEachFunc) error {
 func (d *Disk) ReadSectorAt(pos int64) ([]byte, error) {
 	sector := make([]byte, SectorSize)
 	// TODO see if we can just use d.f.ReadAt()
-	_, err := d.f.Seek(1, pos)
+	_, err := d.f.Seek(pos, io.SeekStart)
 	if err != nil {
 		return nil, err
 	}

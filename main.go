@@ -4,12 +4,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"flag"
+	"strings"
+	"encoding/hex"
+	"bytes"
 )
-
-func main() {
-	RealMain()
-//	QuickTestMain()
-}
 
 func errf(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, format, args...)
@@ -21,22 +20,106 @@ func die(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
+type Command struct {
+	Name		string
+	Args			[]string
+	Description	string
+	Do			func([]string) error
+}
+
+var zeroSector [SectorSize]byte
+
+func isNotZero(sector []byte) bool {
+	return !bytes.Equal(sector, zeroSector[:])
+}
+
+func cDumpLast(args []string) error {
+	d, err := OpenDisk(args[0])
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+
+	// TODO add -fakesize option of sorts
+	last, err := d.Size()
+	if err != nil {
+		return err
+	}
+
+	sector, pos, err := d.ReverseSearch(last, isNotZero)
+	if err != nil {
+		return err
+	}
+	if sector == nil {		// not found
+		return fmt.Errorf("non-empty sector not found")
+	}
+
+	fmt.Printf("sector starting at %d\n", pos)
+	fmt.Printf("%s\n", hex.Dump(sector))
+	return nil
+}
+
+var dumplast = &Command{
+	Name:		"dumplast",
+	Args:		[]string{"file"},
+	Description:	"Hexdumps the last non-zero sector in file.",
+	Do:			cDumpLast,
+}
+
+var Commands = []*Command{
+	dumplast,
+}
+
 func usage() {
+/*
 	errf("usage: %s encrypted decrypted\n", os.Args[0])
 	errf("	encrypted must exist; should not be a device\n")
 	errf("	decrypted must NOT exist\n")
 	os.Exit(1)
+*/
+	errf("usage: %s [options] command [args...]\n", os.Args[0])
+	errf("options:\n")
+	flag.PrintDefaults()
+	errf("commands:\n")
+	for _, c := range Commands {
+		// See package flag's source for details on this formatting.
+		errf("  %s %s\n", c.Name, strings.Join(c.Args, " "))
+		errf("    	%s\n", c.Description)
+	}
+	os.Exit(1)
 }
 
-// 50MB at a time
-const NumSectorsAtATime = 102400
-const NumBytesAtATime = NumSectorsAtATime * SectorSize
-const NumMBAtATime = NumBytesAtATime / 1024 / 1024
-
-func RealMain() {
-	if len(os.Args) != 3 {
+func main() {
+	flag.Usage = usage
+	flag.Parse()
+	if flag.NArg() == 0 {
 		usage()
 	}
+	cmd := flag.Arg(0)
+
+	for _, c := range Commands {
+		if cmd != c.Name {
+			continue
+		}
+		args := flag.Args()[1:]
+		if len(args) != len(c.Args) {
+			errf("error: incorrect number of arguments for command %s\n", c.Name)
+			usage()
+		}
+		err := c.Do(args)
+		if err != nil {
+			die("error running %s: %v\n", c.Name, err)
+		}
+		// all good; return successfully
+		return
+	}
+
+	errf("error: unknown command %q\n", cmd)
+	usage()
+}
+
+/*
+
 	infname := os.Args[1]
 	outfname := os.Args[2]
 
@@ -115,40 +198,4 @@ func RealMain() {
 
 	fmt.Printf("Completed successfully!\n")
 }
-
-func QuickTestMain() {
-	f, _ := os.Open(os.Args[1])
-	fout, _ := os.Create(os.Args[2])
-
-	size, _ := f.Seek(0, 2)
-	keySector, bridge := FindKeySectorAndBridge(f, size)
-	if keySector == nil {
-		fmt.Println("no key sector found")
-		return
-	}
-	fmt.Println("found " + bridge.Name())
-
-	c := TryGetDecrypter(keySector, bridge, func(firstTime bool) (password string, cancelled bool) {
-		if firstTime {
-			fmt.Println("We need the drive's password to decrypt your drive.")
-		} else {
-			fmt.Println("Password incorrect.")
-		}
-		// TODO
-		return "abc123", false
-	})
-	if c == nil {
-		fmt.Println("User aborted.")
-		return
-	}
-
-	_, err := f.Seek(0, 0)
-	if err != nil {
-		// TODO
-		panic(err)
-	}
-	sector := make([]byte, SectorSize)
-	for DecryptNext(f, fout, bridge, c, sector) {
-		// TODO
-	}
-}
+*/

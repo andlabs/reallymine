@@ -87,7 +87,7 @@ func jmicronExtractDEK(keySector []byte, offset int) ([]byte, error) {
 	}
 
 	if dekblock.KeySize != 0x20 {
-		return nil, IncompleteImplentation("The size of the encryption key in your JMicron sector (%d) is not known.", dekblock.KeySize)
+		return nil, IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", dekblock.KeySize)
 	}
 
 	dek := make([]byte, 32)
@@ -106,7 +106,7 @@ func (JMicron) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) 
 	if err != nil {
 		return nil, err
 	}
-	offset = jmicronFindDEK(keySector)
+	offset := jmicronFindDEK(keySector)
 	if offset == -1 { // wrong KEK
 		return nil, ErrWrongKEK
 	}
