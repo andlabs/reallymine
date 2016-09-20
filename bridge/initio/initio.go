@@ -1,11 +1,13 @@
 // 23 october 2015
-package main
+package initio
 
 import (
 	"bytes"
 	"crypto/cipher"
 	"crypto/aes"
 	"encoding/binary"
+
+	"github.com/andlabs/reallymine/bridge"
 )
 
 type Initio struct{}
@@ -25,7 +27,7 @@ func (Initio) NeedsKEK() bool {
 	return true
 }
 
-func initioDecryptKeySector(keySector []byte, kek []byte) error {
+func decryptKeySector(keySector []byte, kek []byte) error {
 	SwapHalves(kek)
 	Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
@@ -41,13 +43,13 @@ func initioDecryptKeySector(keySector []byte, kek []byte) error {
 	return nil
 }
 
-type initioDEKBlock struct {
+type dekBlock struct {
 	Magic   [4]byte // 27 5D BA 35
 	Unknown [8]byte
 	Key     [32]byte // stored as little-endian longs
 }
 
-func (d *initioDEKBlock) valid() bool {
+func (d *dekBlock) valid() bool {
 	return d.Magic[0] == 0x27 &&
 		d.Magic[1] == 0x5D &&
 		d.Magic[2] == 0xBA &&
@@ -56,10 +58,10 @@ func (d *initioDEKBlock) valid() bool {
 
 // Unlike the JMicron one, the Initio DEK block is at a fixed offset
 // into the key sector.
-const initioDEKOffset = 0x190
+const dekOffset = 0x190
 
-func initioExtractDEKBlock(keySector []byte) (*initioDEKBlock, error) {
-	dekblock := new(initioDEKBlock)
+func extractDEKBlock(keySector []byte) (*dekBlock, error) {
+	dekblock := new(dekBlock)
 	r := bytes.NewReader(keySector[initioDEKOffset:])
 	// The endianness is most likely right, but unimportant since every field is [...]byte.
 	err := binary.Read(r, binary.LittleEndian, dekblock)
@@ -74,11 +76,11 @@ func (Initio) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
 	keySector = DupBytes(keySector)
 	kek = DupBytes(kek)
 
-	err = initioDecryptKeySector(keySector, kek)
+	err = decryptKeySector(keySector, kek)
 	if err != nil {
 		return nil, err
 	}
-	dekblock, err := initioExtractDEKBlock(keySector)
+	dekblock, err := extractDEKBlock(keySector)
 	if err != nil {
 		return nil, err
 	}
@@ -104,5 +106,5 @@ func (Initio) Decrypt(c cipher.Block, b []byte) {
 }
 
 func init() {
-	Bridges = append(Bridges, Initio{})
+	bridge.Bridges = append(bridge.Bridges, Initio{})
 }

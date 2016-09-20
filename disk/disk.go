@@ -1,5 +1,5 @@
 // 22 october 2015
-package main
+package disk
 
 import (
 	"fmt"

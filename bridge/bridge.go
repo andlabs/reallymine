@@ -1,5 +1,5 @@
 // 21 october 2015
-package main
+package bridge
 
 import (
 	"fmt"

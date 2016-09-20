@@ -1,11 +1,12 @@
 // 23 october 2015
-package main
+package symwave
 
 import (
 	"crypto/cipher"
 	"bytes"
 	"encoding/binary"
 
+	"github.com/andlabs/reallymine/bridge"
 	"github.com/mendsley/gojwe"
 )
 
@@ -29,7 +30,7 @@ func (Symwave) NeedsKEK() bool {
 
 // The DEK is stored as two separately-wrapped halves.
 // The KEK is only stored as one.
-type symwaveKeySector struct {
+type keySector struct {
 	Magic		[4]byte
 	Unknown		[0xC]byte
 	WrappedDEK1	[0x28]byte
@@ -38,7 +39,7 @@ type symwaveKeySector struct {
 }
 
 // This is hardcoded into the Symwave firmware.
-var symwaveKEKWrappingKey = []byte{
+var kekWrappingKey = []byte{
 	0x29, 0xA2, 0x60, 0x7A,
 	0xEA, 0x0B, 0x64, 0xAB,
 	0x7B, 0xB3, 0xB9, 0xAB,
@@ -50,7 +51,7 @@ var symwaveKEKWrappingKey = []byte{
 }
 
 func (Symwave) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
-	var ks symwaveKeySector
+	var ks keySector
 
 	r := bytes.NewReader(keySector)
 	// Again, stored as little endian for some reason; this is a 68000 system so it should be big endian...
@@ -62,7 +63,7 @@ func (Symwave) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) 
 	// And again with the endianness stuff...
 	wrapped := ks.WrappedKEK[:]
 	SwapLongs(wrapped)
-	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, wrapped)
+	kek, err = gojwe.AesKeyUnwrap(kekWrappingKey, wrapped)
 	if err != nil {
 		return nil, err
 	}
@@ -96,5 +97,5 @@ func (Symwave) Decrypt(c cipher.Block, b []byte) {
 }
 
 func init() {
-	Bridges = append(Bridges, Symwave{})
+	bridge.Bridges = append(bridge.Bridges, Symwave{})
 }

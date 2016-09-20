@@ -1,11 +1,13 @@
 // 21 october 2015
-package main
+package jmicron
 
 import (
 	"bytes"
 	"crypto/cipher"
 	"crypto/aes"
 	"encoding/binary"
+
+	"github.com/andlabs/reallymine/bridge"
 )
 
 type JMicron struct{}
@@ -25,7 +27,7 @@ func (JMicron) NeedsKEK() bool {
 	return true
 }
 
-func jmicronDecryptKeySector(keySector []byte, kek []byte) error {
+func decryptKeySector(keySector []byte, kek []byte) error {
 	Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
 	if err != nil {
@@ -41,7 +43,7 @@ func jmicronDecryptKeySector(keySector []byte, kek []byte) error {
 }
 
 // the DEK can be anywhere in the decrypted key sector
-func jmicronFindDEK(keySector []byte) (offset int) {
+func findDEK(keySector []byte) (offset int) {
 	for i := 0; i < len(keySector)-4; i++ {
 		if keySector[i+0] == 'D' &&
 			keySector[i+1] == 'E' &&
@@ -57,7 +59,7 @@ func jmicronFindDEK(keySector []byte) (offset int) {
 // But I recognize the hex numbers as addresses in the JMicron chip's
 // RAM. These RAM addresses followed me around throughout
 // disassembly, and I *knew* they were suspicious, damnit!
-type jmicronDEKBlock struct {
+type dekBlock struct {
 	Magic     [4]byte // 'DEK1'
 	Checksum  uint16
 	Unknown   uint16
@@ -73,8 +75,8 @@ type jmicronDEKBlock struct {
 }
 
 // TODO make this more like the initio one
-func jmicronExtractDEK(keySector []byte, offset int) ([]byte, error) {
-	var dekblock jmicronDEKBlock
+func extractDEK(keySector []byte, offset int) ([]byte, error) {
+	var dekblock dekBlock
 
 	r := bytes.NewReader(keySector[offset:])
 	// The endianness is likely wrong. We don't use any of
@@ -87,7 +89,7 @@ func jmicronExtractDEK(keySector []byte, offset int) ([]byte, error) {
 	}
 
 	if dekblock.KeySize != 0x20 {
-		return nil, IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", dekblock.KeySize)
+		return nil, bridge.IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", dekblock.KeySize)
 	}
 
 	dek := make([]byte, 32)
@@ -102,15 +104,15 @@ func (JMicron) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) 
 	keySector = DupBytes(keySector)
 	kek = DupBytes(kek)
 
-	err = jmicronDecryptKeySector(keySector, kek)
+	err = decryptKeySector(keySector, kek)
 	if err != nil {
 		return nil, err
 	}
-	offset := jmicronFindDEK(keySector)
+	offset := findDEK(keySector)
 	if offset == -1 { // wrong KEK
 		return nil, ErrWrongKEK
 	}
-	return jmicronExtractDEK(keySector, offset)
+	return extractDEK(keySector, offset)
 }
 
 func (JMicron) Decrypt(c cipher.Block, b []byte) {
@@ -123,5 +125,5 @@ func (JMicron) Decrypt(c cipher.Block, b []byte) {
 }
 
 func init() {
-	Bridges = append(Bridges, JMicron{})
+	bridge.Bridges = append(bridge.Bridges, JMicron{})
 }
