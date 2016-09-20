@@ -12,6 +12,7 @@ const SectorSize = 512
 // Disk is currently not safe for concurrent use.
 type Disk struct {
 	f	*os.File
+	size	int64
 }
 
 func OpenDisk(filename string) (d *Disk, err error) {
@@ -20,6 +21,15 @@ func OpenDisk(filename string) (d *Disk, err error) {
 	if err != nil {
 		return nil, err
 	}
+	d.size, err = d.f.Seek(0, io.SeekEnd)
+	if err != nil {
+		d.f.Close()
+		return nil, err
+	}
+	if d.size % SectorSize != 0 {
+		d.f.Close()
+		return nil, fmt.Errorf("disk size is not a multiple of the sector size; this is likely not a disk")
+	}
 	return d, nil
 }
 
@@ -27,31 +37,8 @@ func (d *Disk) Close() error {
 	return d.f.Close()
 }
 
-func (d *Disk) Size() (int64, error) {
-	return d.f.Seek(0, io.SeekEnd)
-}
-
-// TODO write a function to make this stop early, giving the user the option to continue
-
-type SearchFunc func(sector []byte) (found bool)
-
-func (d *Disk) ReverseSearch(startAt int64, f SearchFunc) (sector []byte, pos int64, err error) {
-	sector = make([]byte, SectorSize)
-	pos = startAt - SectorSize
-	for pos >= 0 {
-		// TODO is this correct usage of ReadAt()?
-		_, err := d.f.ReadAt(sector, pos)
-		// io.ReaderAt specifies that EOF may be returned when reading right at the end of the file
-		if err != nil && err != io.EOF {
-			return nil, 0, err
-		}
-		found := f(sector)
-		if found {
-			return sector, pos, nil
-		}
-		pos -= SectorSize
-	}
-	return nil, 0, nil
+func (d *Disk) Size() int64 {
+	return d.size
 }
 
 /* TODO
@@ -79,72 +66,90 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 }
 */
 
-var ErrCancelled = fmt.Errorf("cancelled")
-
-type ForEachFunc func(sectors []byte) (cancel bool)
-
-func (d *Disk) ForEach(nSectorsPer int, f ForEachFunc) error {
-	_, err := d.f.Seek(0, io.SeekStart)
-	if err != nil {
-		return err
+func (d *Disk) ReadSectorsAt(sectors []byte, pos int64) (int64, error) {
+	if len(sectors) % SectorSize != 0 {
+		return 0, io.ErrShortBuffer		// TODO better error?
 	}
-	sectors := make([]byte, nSectorsPer * SectorSize)
-	for {
-		n, err := d.f.Read(sectors)
-		if err == io.EOF {
-			break
+	n, err := d.f.ReadAt(sectors, pos)
+	if err == io.EOF {
+		if n == 0 {		// this is truly the end of the disk
+			return 0, io.EOF
 		}
-		if err != nil {
-			return err
+		if n % SectorSize != 0 {
+			return n, io.ErrUnexpectedEOF
 		}
-		// handle the final block properly if it's shorter
-		sectors = sectors[:n]
-		cancel := f(sectors)
-		if cancel {
-			return ErrCancelled
-		}
+		// Allow a short read at the end of the disk; the next call
+		// to ReadSectorsAt() will return EOF with nothing read.
+		// (Of course, if n == len(sectors), it isn't a *short* read,
+		// but the point still applies.)
+		return n, nil
 	}
-	return nil
-}
-
-func (d *Disk) ReadSectorAt(pos int64) ([]byte, error) {
-	sector := make([]byte, SectorSize)
-	// TODO see if we can just use d.f.ReadAt()
-	_, err := d.f.Seek(pos, io.SeekStart)
-	if err != nil {
-		return nil, err
-	}
-	_, err = io.ReadFull(d.f, sector)
-	if err != nil {
-		return nil, err
-	}
-	return sector, err
+	// This handles the remaining cases.
+	// If n != len(sectors) then err will not be nil by the
+	// requirements of io.ReaderAt (and also not be io.EOF
+	// due to the above code) so we're good on that part.
+	// If n == len(sectors) then just pass err unchnaged; it
+	// might be nil, so the success case is handled too.
+	return n, err
 }
 
 type SectorIter struct {
 	d		*Disk
 	sectors	[]byte
-	reverse	bool
 	pos		int64
+	incr		int		// in units of len(sectors)
+	eof		bool
 	err		error
 }
 
-func (d *Disk) Iter(startAt int64, countPer int) *SectorIter {
-	return &SectorIter{
-		d:		d,
-		sectors:	make([]byte, countPer * SectorSize),
-		pos:		startAt,
+func (d *Disk) mkiter(startAt int64, countPer int, reverse bool) (*SectorIter, error) {
+	if startAt % SectorSize != 0 {
+		return nil, fmt.Errorf("startAt must be sector-aligned")
 	}
+	s := new(SectorIter)
+	s.d = d
+	span := s.d.size - startAt
+	if reverse {
+		span = startAt
+	}
+	s.sectors = make([]byte, countPer * SectorSize)
+	if reverse {
+		// The first call to Next() will push s.pos to the last block.
+		s.pos = startAt
+		s.incr = -1
+	} else {
+		// The first call to Next() will increment s.pos to startAt.
+		s.pos = startAt - len(sectors)
+		s.incr = 1
+	}
+	return s, nil
 }
 
-func (d *Disk) ReverseIter(startAt int64, countPer int) *SectorIter {
-	s := d.Iter(startAt, countPer)
-	s.reverse = true
-	return s
+func (d *Disk) Iter(startAt int64, countPer int) *SectorIter {
+	return d.mkiter(startAt, countPer, false)
+}
+
+// TODO allow different sized iter blocks if we ever split this into its own package; this requires handling the last short read in Next()
+func (d *Disk) ReverseIter(startAt int64) (*SectorIter, error) {
+	return d.mkiter(startAt, 1, true)
 }
 
 func (s *SectorIter) Next() bool {
-	// TODO
+	if s.eof {
+		return false
+	}
+	s.pos += s.incr * len(s.sectors)
+	n, err := s.d.ReadSectrosAt(s.sectors, s.pos)
+	if err == io.EOF {
+		s.eof = true
+		return false
+	}
+	if err != nil {
+		s.err = err
+		return false
+	}
+	s.sectors = s.sectors[:n]		// trim short last read
+	return true
 }
 
 func (s *SectorIter) Sectors() []byte {
