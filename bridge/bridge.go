@@ -12,8 +12,15 @@ type Bridge interface {
 	Name() string
 	Is(keySector []byte) bool
 	NeedsKEK() bool
-	ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error)
+	// do not check if KEK is wrong; that will be done in KeySector.DEK()
+	// this way, we can still use KeySector.Raw() for research and debugging
+	DecryptKeySector(keySector []byte, kek []byte) (ks KeySector, err error)
 	Decrypt(c cipher.Block, b []byte)
+}
+
+type KeySector interface {
+	Raw() []byte
+	DEK() (dek []byte, err error)
 }
 
 var Bridges []Bridge

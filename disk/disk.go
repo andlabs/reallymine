@@ -120,3 +120,37 @@ func (d *Disk) ReadSectorAt(pos int64) ([]byte, error) {
 	}
 	return sector, err
 }
+
+type SectorIter struct {
+	d		*Disk
+	sectors	[]byte
+	reverse	bool
+	pos		int64
+	err		error
+}
+
+func (d *Disk) Iter(startAt int64, countPer int) *SectorIter {
+	return &SectorIter{
+		d:		d,
+		sectors:	make([]byte, countPer * SectorSize),
+		pos:		startAt,
+	}
+}
+
+func (d *Disk) ReverseIter(startAt int64, countPer int) *SectorIter {
+	s := d.Iter(startAt, countPer)
+	s.reverse = true
+	return s
+}
+
+func (s *SectorIter) Next() bool {
+	// TODO
+}
+
+func (s *SectorIter) Sectors() []byte {
+	return s.sectors
+}
+
+func (s *SectorIter) Err() error {
+	return s.err
+}
