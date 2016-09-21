@@ -1,5 +1,7 @@
 // 21 october 2015
-package main
+package bridge
+
+// TODO either unexport these or split into a separate package
 
 func Reverse(b []byte) {
 	if len(b)%2 == 1 {

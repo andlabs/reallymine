@@ -1,5 +1,5 @@
 // 23 october 2015
-package main
+package kek
 
 import (
 	"crypto/sha256"
