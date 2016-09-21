@@ -22,7 +22,7 @@ func die(format string, args ...interface{}) {
 }
 
 var Commands = []*command.Command{
-	// TODO
+	dumplast,
 }
 
 func init() {
@@ -63,7 +63,7 @@ func main() {
 			usage()
 		}
 		if err != nil {
-			die("error running %s: %v\n", c.Name, err)
+			die("error running %s: %v", c.Name, err)
 		}
 		// all good; return successfully
 		return

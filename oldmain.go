@@ -13,69 +13,6 @@ import (
 	"bytes"
 )
 
-func errf(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, args...)
-}
-
-func die(format string, args ...interface{}) {
-	errf(format, args...)
-	errf("\n")
-	os.Exit(1)
-}
-
-type Command struct {
-	Name		string
-	Args			[]string
-	Description	string
-	Do			func([]string) error
-}
-
-var zeroSector [disk.SectorSize]byte
-
-func cDumpLast(args []string) error {
-	var sector []byte
-
-	d, err := disk.Open(args[0])
-	if err != nil {
-		return err
-	}
-	defer d.Close()
-
-	// TODO add -fakesize option of sorts
-	pos := d.Size()
-	iter, err := d.ReverseIter(pos)
-	if err != nil {
-		return err
-	}
-
-	found := false
-	for iter.Next() {
-		sector = iter.Sectors()
-		pos = iter.Pos()
-		if !bytes.Equal(sector, zeroSector[:]) {
-			found = true
-			break
-		}
-	}
-	if err = iter.Err(); err != nil {
-		return err
-	}
-	if !found {		// not found
-		return fmt.Errorf("non-empty sector not found")
-	}
-
-	fmt.Printf("sector starting at %d\n", pos)
-	fmt.Printf("%s", hex.Dump(sector))
-	return nil
-}
-
-var dumplast = &Command{
-	Name:		"dumplast",
-	Args:		[]string{"disk"},
-	Description:	"Hexdumps the last non-zero sector in disk.",
-	Do:			cDumpLast,
-}
-
 type foundKeySector struct {
 	sector	[]byte
 	pos		int64
@@ -142,54 +79,6 @@ var dumpksraw = &Command{
 var Commands = []*Command{
 	dumplast,
 	dumpksraw,
-}
-
-func usage() {
-/*
-	errf("usage: %s encrypted decrypted\n", os.Args[0])
-	errf("	encrypted must exist; should not be a device\n")
-	errf("	decrypted must NOT exist\n")
-	os.Exit(1)
-*/
-	errf("usage: %s [options] command [args...]\n", os.Args[0])
-	errf("options:\n")
-	flag.PrintDefaults()
-	errf("commands:\n")
-	for _, c := range Commands {
-		// See package flag's source for details on this formatting.
-		errf("  %s %s\n", c.Name, strings.Join(c.Args, " "))
-		errf("    	%s\n", c.Description)
-	}
-	os.Exit(1)
-}
-
-func main() {
-	flag.Usage = usage
-	flag.Parse()
-	if flag.NArg() == 0 {
-		usage()
-	}
-	cmd := flag.Arg(0)
-
-	for _, c := range Commands {
-		if cmd != c.Name {
-			continue
-		}
-		args := flag.Args()[1:]
-		if len(args) != len(c.Args) {
-			errf("error: incorrect number of arguments for command %s\n", c.Name)
-			usage()
-		}
-		err := c.Do(args)
-		if err != nil {
-			die("error running %s: %v\n", c.Name, err)
-		}
-		// all good; return successfully
-		return
-	}
-
-	errf("error: unknown command %q\n", cmd)
-	usage()
 }
 
 /*

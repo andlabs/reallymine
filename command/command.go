@@ -19,7 +19,7 @@ type Command struct {
 var (
 	// this is what text/template does
 	typeError = reflect.TypeOf((*error)(nil)).Elem()
-	typeDisk = reflect.TypeOf((*disk.Disk)(nil)).Elem()
+	typeDisk = reflect.TypeOf((*disk.Disk)(nil))
 )
 
 func (c *Command) validate() (issues []string) {
@@ -104,7 +104,11 @@ func (c *Command) Invoke(args []string) error {
 		}
 	}
 	out := fv.Call(fa)
-	return out[0].Interface().(error)
+	ret := out[0].Interface()
+	if ret == nil {
+		return nil
+	}
+	return ret.(error)
 }
 
 func Validate(commands []*Command) (problems []string) {
