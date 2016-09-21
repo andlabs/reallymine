@@ -6,10 +6,9 @@ import (
 	"os"
 	"flag"
 	"strings"
-	"reflect"
 
 	"github.com/andlabs/reallymine/command"
-	"github.com/andlabs/reallymine/disk"
+//	"github.com/andlabs/reallymine/disk"
 )
 
 func errf(format string, args ...interface{}) {

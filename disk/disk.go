@@ -66,7 +66,7 @@ func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime
 }
 */
 
-func (d *Disk) ReadSectorsAt(sectors []byte, pos int64) (int64, error) {
+func (d *Disk) ReadSectorsAt(sectors []byte, pos int64) (int, error) {
 	if len(sectors) % SectorSize != 0 {
 		return 0, io.ErrShortBuffer		// TODO better error?
 	}
@@ -108,10 +108,6 @@ func (d *Disk) mkiter(startAt int64, countPer int, reverse bool) (*SectorIter, e
 	}
 	s := new(SectorIter)
 	s.d = d
-	span := s.d.size - startAt
-	if reverse {
-		span = startAt
-	}
 	s.sectors = make([]byte, countPer * SectorSize)
 	if reverse {
 		// The first call to Next() will push s.pos to the last block.
@@ -119,13 +115,13 @@ func (d *Disk) mkiter(startAt int64, countPer int, reverse bool) (*SectorIter, e
 		s.incr = -1
 	} else {
 		// The first call to Next() will increment s.pos to startAt.
-		s.pos = startAt - len(sectors)
+		s.pos = startAt - int64(len(s.sectors))
 		s.incr = 1
 	}
 	return s, nil
 }
 
-func (d *Disk) Iter(startAt int64, countPer int) *SectorIter {
+func (d *Disk) Iter(startAt int64, countPer int) (*SectorIter, error) {
 	return d.mkiter(startAt, countPer, false)
 }
 
@@ -138,7 +134,7 @@ func (s *SectorIter) Next() bool {
 	if s.eof {
 		return false
 	}
-	s.pos += s.incr * len(s.sectors)
+	s.pos += int64(s.incr * len(s.sectors))
 	n, err := s.d.ReadSectorsAt(s.sectors, s.pos)
 	if err == io.EOF {
 		s.eof = true

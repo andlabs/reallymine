@@ -33,7 +33,7 @@ func (c *Command) validate() (issues []string) {
 	if c.Name == "" {
 		bad("name must be specified")
 	}
-	if strings.IndexOf(c.Name, " ") != -1 {
+	if strings.Index(c.Name, " ") != -1 {
 		bad("name cannot contain spaces")
 	}
 	if c.Description == "" {
@@ -70,7 +70,7 @@ func (c *Command) validate() (issues []string) {
 		}
 	}
 
-	for _, arg := range c.Args {
+	for i, arg := range c.Args {
 		switch arg {
 		case "disk":
 			if ft != nil && ft.In(i) != typeDisk {
@@ -86,7 +86,7 @@ func (c *Command) validate() (issues []string) {
 
 var ErrWrongArgCount = fmt.Errorf("wrong number of arguments")
 
-func (c *Command) Invoke(args []string) errror {
+func (c *Command) Invoke(args []string) error {
 	if len(args) != len(c.Args) {
 		return ErrWrongArgCount
 	}
@@ -123,7 +123,7 @@ func FormatUsage(commands []*Command) string {
 		return "(no commands)\n"
 	}
 	out := ""
-	for _, c := range Commands {
+	for _, c := range commands {
 		// See package flag's source for details on this formatting.
 		out += fmt.Sprintf("  %s %s\n", c.Name, strings.Join(c.Args, " "))
 		out += fmt.Sprintf("    	%s\n", c.Description)
