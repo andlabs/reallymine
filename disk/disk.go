@@ -156,6 +156,10 @@ func (s *SectorIter) Sectors() []byte {
 	return s.sectors
 }
 
+func (s *SectorIter) Pos() int64 {
+	return s.pos
+}
+
 func (s *SectorIter) Err() error {
 	return s.err
 }
