@@ -88,7 +88,7 @@ func (ks *JMicronKeySector) findDEK() (offset int) {
 	return -1 // not found; this isn't the right KEK
 }
 
-func (ks *JMicronKeySector) ExtractDEK() ([]byte, error) {
+func (ks *JMicronKeySector) ExtractDEK() (dek []byte, err error) {
 	offset := ks.findDEK()
 	if offset == -1 {
 		return nil, ErrWrongKEK
@@ -99,7 +99,7 @@ func (ks *JMicronKeySector) ExtractDEK() ([]byte, error) {
 	// the endian-dependent fields, though. I can figure the
 	// correct endianness from the disassembly if they're ever
 	// actually needed.
-	err := binary.Read(r, binary.BigEndian, &(ks.d))
+	err = binary.Read(r, binary.BigEndian, &(ks.d))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (ks *JMicronKeySector) ExtractDEK() ([]byte, error) {
 		return nil, IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", ks.d.KeySize)
 	}
 
-	dek := make([]byte, 32)
+	dek = make([]byte, 32)
 	copy(dek[:16], ks.d.Key3EE2[:])
 	copy(dek[16:], ks.d.Key3EF2[:])
 	Reverse(dek)
