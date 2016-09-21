@@ -88,7 +88,7 @@ func (ks *JMicronKeySector) findDEK() (offset int) {
 	return -1 // not found; this isn't the right KEK
 }
 
-func (ks *JMicronKeySector) ExtractDEK() (dek []byte, err error) {
+func (ks *JMicronKeySector) DEK() (dek []byte, err error) {
 	offset := ks.findDEK()
 	if offset == -1 {
 		return nil, ErrWrongKEK

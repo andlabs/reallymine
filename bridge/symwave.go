@@ -63,7 +63,7 @@ func (ks *SymwaveKeySector) Raw() []byte {
 	return ks.raw
 }
 
-func (ks *SymwaveKeySector) ExtractDEK() (dek []byte, err error) {
+func (ks *SymwaveKeySector) DEK() (dek []byte, err error) {
 	r := bytes.NewReader(ks.raw)
 	// Again, stored as little endian for some reason; this is a 68000 system so it should be big endian...
 	err = binary.Read(r, binary.LittleEndian, &(ks.d))

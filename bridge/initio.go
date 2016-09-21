@@ -72,7 +72,7 @@ func (ks *InitioKeySector) valid() bool {
 // into the key sector.
 const initioDEKOffset = 0x190
 
-func (ks *InitioKeySector) ExtractDEK() (dek []byte, err error) {
+func (ks *InitioKeySector) DEK() (dek []byte, err error) {
 	r := bytes.NewReader(ks.raw[initioDEKOffset:])
 	// The endianness is most likely right, but unimportant since every field is [...]byte.
 	err = binary.Read(r, binary.LittleEndian, &(ks.d))

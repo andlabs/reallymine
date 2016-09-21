@@ -15,7 +15,7 @@ type Disk struct {
 	size	int64
 }
 
-func OpenDisk(filename string) (d *Disk, err error) {
+func Open(filename string) (d *Disk, err error) {
 	d = new(Disk)
 	d.f, err = os.Open(filename)
 	if err != nil {
