@@ -68,8 +68,8 @@ func cDumpLast(args []string) error {
 
 var dumplast = &Command{
 	Name:		"dumplast",
-	Args:		[]string{"file"},
-	Description:	"Hexdumps the last non-zero sector in file.",
+	Args:		[]string{"disk"},
+	Description:	"Hexdumps the last non-zero sector in disk.",
 	Do:			cDumpLast,
 }
 
@@ -131,8 +131,8 @@ func cDumpKSRaw(args []string) error {
 
 var dumpksraw = &Command{
 	Name:		"dumpksraw",
-	Args:		[]string{"file"},
-	Description:	"Identifies and hexdumps the key sector in file",
+	Args:		[]string{"disk"},
+	Description:	"Identifies and hexdumps the key sector in disk",
 	Do:			cDumpKSRaw,
 }
 
