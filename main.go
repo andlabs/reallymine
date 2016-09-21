@@ -7,6 +7,9 @@ import (
 	"flag"
 	"strings"
 	"reflect"
+
+	"github.com/andlabs/reallymine/command"
+	"github.com/andlabs/reallymine/disk"
 )
 
 func errf(format string, args ...interface{}) {
@@ -19,103 +22,17 @@ func die(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-type Command struct {
-	Name		string
-	Args			[]string
-	Description	string
-	Do			interface{}
-}
-
-func (c *Command) Validate() (valid bool) {
-	valid = true
-	bad := func(format string, args ...interface{}) {
-		errf("validation: %s: ", c.Name)
-		errf(format, args...)
-		errf("\n")
-		valid = false
-		// don't stop testing; there might be multiple issues
-	}
-
-	if c.Name == "" {
-		bad("name must be specified")
-	}
-	if strings.IndexOf(c.Name, " ") != -1 {
-		bad("name cannot contain spaces")
-	}
-	if c.Description == "" {
-		bad("description must be specified")
-	}
-
-	if c.Do == nil {
-		bad("function must be specified")
-	} else {
-		ft := reflect.TypeOf(c.Do)
-		if ft.Kind() != reflect.Func {
-			bad("not a function")
-		} else {
-			if ft.IsVariadic() {
-				bad("variadic functions not supported")
-			}
-			if ft.NumOut() != 1 {
-				bad("function must return (error)")
-			} else {
-				rt := ft.Out(0)
-				errtype := reflect.TypeOf(error(nil))
-				if rt != errtype {		// TODO
-					bad("function doesn't return error")
-				}
-			}
-			if reflect.ValueOf(c.Do).IsNil() {
-				bad("nil function value specified")
-			}
-		}
-	}
-
-	for _, arg := range c.Args {
-		switch arg {
-		case "disk":
-			// all good
-		default:
-			bad("unknown argument type %q", arg)
-		}
-	}
-
-	return valid
-}
-
-func (c *Command) Invoke(args []string) errror {
-	fv := reflect.ValueOf(c.Do)
-	fa := make([]reflect.Value, len(args))
-	for i, arg := range c.Args {
-		switch arg {
-		case "disk":
-			d, err := disk.Open(args[i])
-			if err != nil {
-				return err
-			}
-			defer d.Close()
-			fa[i] = reflect.ValueOf(d)
-		}
-	}
-	out := fv.Call(fa)
-	return out[0].Interface().(error)
-}
-
-var Commands = []*Command{
+var Commands = []*command.Command{
 	// TODO
 }
 
 func init() {
-	if len(Commands) == 0 {
-		die("command validation failed: no commands; andlabs made a mistake")
-	}
-	valid := true
-	for _, c := range Commands {
-		v := c.Validate()
-		valid &&= v
-	}
-	if !valid {
-		die("command validation failed; andlabs made a mistake")
+	problems := command.Validate(Commands)
+	if len(problems) != 0 {
+		errf("issues with reallymine commands:\n")
+		errf("%s\n", strings.Join(problems, "\n"))
+		errf("this means andlabs made a mistake; contact him\n")
+		os.Exit(1)
 	}
 }
 
@@ -124,11 +41,7 @@ func usage() {
 	errf("options:\n")
 	flag.PrintDefaults()
 	errf("commands:\n")
-	for _, c := range Commands {
-		// See package flag's source for details on this formatting.
-		errf("  %s %s\n", c.Name, strings.Join(c.Args, " "))
-		errf("    	%s\n", c.Description)
-	}
+	errf("%s", command.FormatUsage(Commands))
 	os.Exit(1)
 }
 
@@ -145,11 +58,11 @@ func main() {
 			continue
 		}
 		args := flag.Args()[1:]
-		if len(args) != len(c.Args) {
-			errf("error: incorrect number of arguments for command %s\n", c.Name)
+		err := c.Invoke(args)
+		if err == command.ErrWrongArgCount {
+			errf("error running %s: %v\n", c.Name, err)
 			usage()
 		}
-		err := c.Invoke(args)
 		if err != nil {
 			die("error running %s: %v\n", c.Name, err)
 		}
