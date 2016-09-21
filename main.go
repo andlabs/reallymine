@@ -27,30 +27,37 @@ type Command struct {
 	Do			func([]string) error
 }
 
-var zeroSector [SectorSize]byte
-
-func isNotZero(sector []byte) bool {
-	return !bytes.Equal(sector, zeroSector[:])
-}
+var zeroSector [disk.SectorSize]byte
 
 func cDumpLast(args []string) error {
-	d, err := OpenDisk(args[0])
+	var sector []byte
+
+	d, err := disk.Open(args[0])
 	if err != nil {
 		return err
 	}
 	defer d.Close()
 
 	// TODO add -fakesize option of sorts
-	last, err := d.Size()
+	pos := d.Size()
+	iter, err := d.ReverseIter(pos)
 	if err != nil {
 		return err
 	}
 
-	sector, pos, err := d.ReverseSearch(last, isNotZero)
-	if err != nil {
+	found := false
+	for iter.Next() {
+		sector = iter.Sectors()
+		pos = iter.Pos()
+		if !bytes.Equal(sector, zeroSector[:]) {
+			found = true
+			break
+		}
+	}
+	if err = iter.Err(); err != nil {
 		return err
 	}
-	if sector == nil {		// not found
+	if !found {		// not found
 		return fmt.Errorf("non-empty sector not found")
 	}
 
@@ -69,23 +76,32 @@ var dumplast = &Command{
 type foundKeySector struct {
 	sector	[]byte
 	pos		int64
-	bridge	Bridge
+	bridge	bridge.Bridge
 }
 
 func findKeySector(d *Disk, startAt int64) (fks *foundKeySector, err error) {
 	fks = new(foundKeySector)
 
-	f := func(sector []byte) bool {
-		fks.bridge = IdentifyKeySector(sector)
-		return fks.bridge != nil
-	}
-	fks.sector, fks.pos, err = d.ReverseSearch(startAt, f)
+	iter, err := disk.ReverseIter(startAt)
 	if err != nil {
 		return nil, err
 	}
-	if fks.sector == nil {
+
+	for iter.Next() {
+		fks.sector = iter.Sectors()
+		fks.pos = iter.Pos()
+		fks.bridge = bridge.IdentifyKeySector(sector)
+		if fks.bridge != nil {
+			break
+		}
+	}
+	if err = iter.Err(); err != nil {
+		return nil, err
+	}
+	if fks.bridge == nil {		// not found
 		return nil, nil
 	}
+
 	return fks, nil
 }
 
@@ -97,10 +113,7 @@ func cDumpKSRaw(args []string) error {
 	defer d.Close()
 
 	// TODO add -fakesize option of sorts
-	last, err := d.Size()
-	if err != nil {
-		return err
-	}
+	last := d.Size()
 
 	fks, err := findKeySector(d, last)
 	if err != nil {
