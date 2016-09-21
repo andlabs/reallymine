@@ -1,13 +1,11 @@
 // 23 october 2015
-package initio
+package bridge
 
 import (
 	"bytes"
 	"crypto/cipher"
 	"crypto/aes"
 	"encoding/binary"
-
-	"github.com/andlabs/reallymine/bridge"
 )
 
 type Initio struct{}
@@ -36,7 +34,7 @@ type InitioKeySector struct {
 	}
 }
 
-func (Initio) DecryptKeySector(keySector []byte, kek []byte) (bridge.KeySector, error) {
+func (Initio) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) {
 	// copy to avoid clobbering
 	keySector = DupBytes(keySector)
 	kek = DupBytes(kek)
@@ -86,7 +84,7 @@ func (ks *InitioKeySector) ExtractDEK() (dek []byte, err error) {
 		return nil, err
 	}
 	if !ks.valid() {
-		return nil, bridge.ErrWrongKEK
+		return nil, ErrWrongKEK
 	}
 
 	// make a copy to avoid altering ks.d
@@ -108,5 +106,5 @@ func (Initio) Decrypt(c cipher.Block, b []byte) {
 }
 
 func init() {
-	bridge.Bridges = append(bridge.Bridges, Initio{})
+	Bridges = append(Bridges, Initio{})
 }

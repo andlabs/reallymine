@@ -1,12 +1,11 @@
 // 23 october 2015
-package symwave
+package bridge
 
 import (
 	"crypto/cipher"
 	"bytes"
 	"encoding/binary"
 
-	"github.com/andlabs/reallymine/bridge"
 	"github.com/mendsley/gojwe"
 )
 
@@ -53,7 +52,7 @@ var symwaveKEKWrappingKey = []byte{
 	0x84, 0x0B, 0x34, 0xFE,
 }
 
-func (Symwave) DecryptKeySector(keySector []byte, kek []byte) (bridge.KeySector, error) {
+func (Symwave) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) {
 	return &SymwaveKeySector{
 		raw:		DupBytes(keySector),
 	}, nil
@@ -109,5 +108,5 @@ func (Symwave) Decrypt(c cipher.Block, b []byte) {
 }
 
 func init() {
-	bridge.Bridges = append(bridge.Bridges, Symwave{})
+	Bridges = append(Bridges, Symwave{})
 }

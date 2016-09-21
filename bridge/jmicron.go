@@ -1,13 +1,11 @@
 // 21 october 2015
-package jmicron
+package bridge
 
 import (
 	"bytes"
 	"crypto/cipher"
 	"crypto/aes"
 	"encoding/binary"
-
-	"github.com/andlabs/reallymine/bridge"
 )
 
 type JMicron struct{}
@@ -51,7 +49,7 @@ type JMicronKeySector struct {
 	}
 }
 
-func (JMicron) DecryptKeySector(keySector []byte, kek []byte) (bridge.KeySector, error) {
+func (JMicron) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) {
 	// copy these to avoid overwriting them
 	keySector = DupBytes(keySector)
 	kek = DupBytes(kek)
@@ -93,7 +91,7 @@ func (ks *JMicronKeySector) findDEK() (offset int) {
 func (ks *JMicronKeySector) ExtractDEK() ([]byte, error) {
 	offset := ks.findDEK()
 	if offset == -1 {
-		return nil, bridge.ErrWrongKEK
+		return nil, ErrWrongKEK
 	}
 
 	r := bytes.NewReader(ks.raw[offset:])
@@ -107,7 +105,7 @@ func (ks *JMicronKeySector) ExtractDEK() ([]byte, error) {
 	}
 
 	if ks.d.KeySize != 0x20 {
-		return nil, bridge.IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", ks.d.KeySize)
+		return nil, IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", ks.d.KeySize)
 	}
 
 	dek := make([]byte, 32)
@@ -127,5 +125,5 @@ func (JMicron) Decrypt(c cipher.Block, b []byte) {
 }
 
 func init() {
-	bridge.Bridges = append(bridge.Bridges, JMicron{})
+	Bridges = append(Bridges, JMicron{})
 }
