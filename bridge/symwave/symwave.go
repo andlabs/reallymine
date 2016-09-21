@@ -28,18 +28,21 @@ func (Symwave) NeedsKEK() bool {
 	return false
 }
 
-// The DEK is stored as two separately-wrapped halves.
-// The KEK is only stored as one.
-type keySector struct {
-	Magic		[4]byte
-	Unknown		[0xC]byte
-	WrappedDEK1	[0x28]byte
-	WrappedDEK2	[0x28]byte
-	WrappedKEK	[0x28]byte
+type SymwaveKeySector struct {
+	raw		[]byte
+	// The DEK is stored as two separately-wrapped halves.
+	// The KEK is only stored as one.
+	d		struct {
+		Magic		[4]byte
+		Unknown		[0xC]byte
+		WrappedDEK1	[0x28]byte
+		WrappedDEK2	[0x28]byte
+		WrappedKEK	[0x28]byte
+	}
 }
 
 // This is hardcoded into the Symwave firmware.
-var kekWrappingKey = []byte{
+var symwaveKEKWrappingKey = []byte{
 	0x29, 0xA2, 0x60, 0x7A,
 	0xEA, 0x0B, 0x64, 0xAB,
 	0x7B, 0xB3, 0xB9, 0xAB,
@@ -50,42 +53,51 @@ var kekWrappingKey = []byte{
 	0x84, 0x0B, 0x34, 0xFE,
 }
 
-func (Symwave) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
-	var ks keySector
+func (Symwave) DecryptKeySector(keySector []byte, kek []byte) (bridge.KeySector, error) {
+	return &SymwaveKeySector{
+		raw:		DupBytes(keySector),
+	}, nil
+}
 
-	r := bytes.NewReader(keySector)
+func (ks *SymwaveKeySector) Raw() []byte {
+	return ks.raw
+}
+
+func (ks *SymwaveKeySector) ExtractDEK() (dek []byte, err error) {
+	r := bytes.NewReader(ks.raw)
 	// Again, stored as little endian for some reason; this is a 68000 system so it should be big endian...
-	err = binary.Read(r, binary.LittleEndian, &ks)
+	err = binary.Read(r, binary.LittleEndian, &(ks.d))
 	if err != nil {
 		return nil, err
 	}
 
 	// And again with the endianness stuff...
-	wrapped := ks.WrappedKEK[:]
+	wrapped := ks.d.WrappedKEK[:]
 	SwapLongs(wrapped)
-	kek, err = gojwe.AesKeyUnwrap(kekWrappingKey, wrapped)
+	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, wrapped)
 	if err != nil {
 		return nil, err
 	}
 
-	wrapped = ks.WrappedDEK1[:]
+	wrapped = ks.d.WrappedDEK1[:]
 	SwapLongs(wrapped)
 	dek1, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
 		return nil, err
 	}
 
-	wrapped = ks.WrappedDEK2[:]
+	wrapped = ks.d.WrappedDEK2[:]
 	SwapLongs(wrapped)
 	dek2, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = dek2
+	dek = DupBytes(dek1)
+	_ = dek2		// doesn't seem to be used
 	// And finally we just need one last endian correction...
-	SwapLongs(dek1)
-	return dek1, nil
+	SwapLongs(dek)
+	return dek, nil
 }
 
 func (Symwave) Decrypt(c cipher.Block, b []byte) {

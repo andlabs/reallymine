@@ -139,7 +139,7 @@ func (s *SectorIter) Next() bool {
 		return false
 	}
 	s.pos += s.incr * len(s.sectors)
-	n, err := s.d.ReadSectrosAt(s.sectors, s.pos)
+	n, err := s.d.ReadSectorsAt(s.sectors, s.pos)
 	if err == io.EOF {
 		s.eof = true
 		return false

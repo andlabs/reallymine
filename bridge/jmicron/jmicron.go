@@ -27,11 +27,39 @@ func (JMicron) NeedsKEK() bool {
 	return true
 }
 
-func decryptKeySector(keySector []byte, kek []byte) error {
+type JMicronKeySector struct {
+	raw	[]byte
+
+	// The names Key3EE2, Key3EF2, and Key3F02 are from the
+	// paper. But I recognize the hex numbers as addresses in the
+	// JMicron chip's RAM. These RAM addresses followed me
+	// around throughout disassembly, and I *knew* they were
+	// suspicious, damnit!
+	d	struct {		// d for "DEK block"
+		Magic     [4]byte // 'DEK1'
+		Checksum  uint16		// TODO check this too?
+		Unknown   uint16
+		Random1   uint32
+		Key3EE2   [16]byte // This is the first half of the AES-256 key.
+		Random2   uint32
+		Key3EF2   [16]byte // This is the second half of the AES-256 key.
+		Random3   uint32
+		Key3F02   [32]byte // I don't know what this is but I highly doubt it's a key.
+		Random4   uint32
+		KeySize   byte
+		Remaining [1 + 4 + 2]byte
+	}
+}
+
+func (JMicron) DecryptKeySector(keySector []byte, kek []byte) (bridge.KeySector, error) {
+	// copy these to avoid overwriting them
+	keySector = DupBytes(keySector)
+	kek = DupBytes(kek)
+
 	Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
@@ -39,80 +67,54 @@ func decryptKeySector(keySector []byte, kek []byte) error {
 		kekcipher.Decrypt(block, block)
 		Reverse(block)
 	}
-	return nil
+
+	return &JMicronKeySector{
+		raw:		keySector,
+	}, nil
+}
+
+func (ks *JMicronKeySector) Raw() []byte {
+	return ks.raw
 }
 
 // the DEK can be anywhere in the decrypted key sector
-func findDEK(keySector []byte) (offset int) {
-	for i := 0; i < len(keySector)-4; i++ {
-		if keySector[i+0] == 'D' &&
-			keySector[i+1] == 'E' &&
-			keySector[i+2] == 'K' &&
-			keySector[i+3] == '1' {
+func (ks *JMicronKeySector) findDEK() (offset int) {
+	for i := 0; i < len(ks.raw)-4; i++ {
+		if ks.raw[i+0] == 'D' &&
+			ks.raw[i+1] == 'E' &&
+			ks.raw[i+2] == 'K' &&
+			ks.raw[i+3] == '1' {
 			return i
 		}
 	}
 	return -1 // not found; this isn't the right KEK
 }
 
-// The names Key3EE2, Key3EF2, and Key3F02 are from the paper.
-// But I recognize the hex numbers as addresses in the JMicron chip's
-// RAM. These RAM addresses followed me around throughout
-// disassembly, and I *knew* they were suspicious, damnit!
-type dekBlock struct {
-	Magic     [4]byte // 'DEK1'
-	Checksum  uint16
-	Unknown   uint16
-	Random1   uint32
-	Key3EE2   [16]byte // This is the first half of the AES-256 key.
-	Random2   uint32
-	Key3EF2   [16]byte // This is the second half of the AES-256 key.
-	Random3   uint32
-	Key3F02   [32]byte // I don't know what this is but I highly doubt it's a key.
-	Random4   uint32
-	KeySize   byte
-	Remaining [1 + 4 + 2]byte
-}
+func (ks *JMicronKeySector) ExtractDEK() ([]byte, error) {
+	offset := ks.findDEK()
+	if offset == -1 {
+		return nil, bridge.ErrWrongKEK
+	}
 
-// TODO make this more like the initio one
-func extractDEK(keySector []byte, offset int) ([]byte, error) {
-	var dekblock dekBlock
-
-	r := bytes.NewReader(keySector[offset:])
+	r := bytes.NewReader(ks.raw[offset:])
 	// The endianness is likely wrong. We don't use any of
 	// the endian-dependent fields, though. I can figure the
 	// correct endianness from the disassembly if they're ever
 	// actually needed.
-	err := binary.Read(r, binary.BigEndian, &dekblock)
+	err := binary.Read(r, binary.BigEndian, &(ks.d))
 	if err != nil {
 		return nil, err
 	}
 
-	if dekblock.KeySize != 0x20 {
-		return nil, bridge.IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", dekblock.KeySize)
+	if ks.d.KeySize != 0x20 {
+		return nil, bridge.IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", ks.d.KeySize)
 	}
 
 	dek := make([]byte, 32)
-	copy(dek[:16], dekblock.Key3EE2[:])
-	copy(dek[16:], dekblock.Key3EF2[:])
+	copy(dek[:16], ks.d.Key3EE2[:])
+	copy(dek[16:], ks.d.Key3EF2[:])
 	Reverse(dek)
 	return dek, nil
-}
-
-func (JMicron) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
-	// make a copy of these so the originals aren't touched
-	keySector = DupBytes(keySector)
-	kek = DupBytes(kek)
-
-	err = decryptKeySector(keySector, kek)
-	if err != nil {
-		return nil, err
-	}
-	offset := findDEK(keySector)
-	if offset == -1 { // wrong KEK
-		return nil, ErrWrongKEK
-	}
-	return extractDEK(keySector, offset)
 }
 
 func (JMicron) Decrypt(c cipher.Block, b []byte) {

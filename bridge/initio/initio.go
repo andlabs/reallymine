@@ -27,12 +27,25 @@ func (Initio) NeedsKEK() bool {
 	return true
 }
 
-func decryptKeySector(keySector []byte, kek []byte) error {
+type InitioKeySector struct {
+	raw	[]byte
+	d	struct {		// d for "DEK block"
+		Magic   [4]byte // 27 5D BA 35
+		Unknown [8]byte
+		Key     [32]byte // stored as little-endian longs
+	}
+}
+
+func (Initio) DecryptKeySector(keySector []byte, kek []byte) (bridge.KeySector, error) {
+	// copy to avoid clobbering
+	keySector = DupBytes(keySector)
+	kek = DupBytes(kek)
+
 	SwapHalves(kek)
 	Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
@@ -40,55 +53,44 @@ func decryptKeySector(keySector []byte, kek []byte) error {
 		kekcipher.Decrypt(block, block)
 		// Don't swap back; it'll be correct as-is.
 	}
-	return nil
+
+	return &InitioKeySector{
+		raw:		keySector,
+	}, nil
 }
 
-type dekBlock struct {
-	Magic   [4]byte // 27 5D BA 35
-	Unknown [8]byte
-	Key     [32]byte // stored as little-endian longs
+func (ks *InitioKeySector) Raw() []byte {
+	return ks.raw
 }
 
-func (d *dekBlock) valid() bool {
-	return d.Magic[0] == 0x27 &&
-		d.Magic[1] == 0x5D &&
-		d.Magic[2] == 0xBA &&
-		d.Magic[3] == 0x35
+func (ks *InitioKeySector) valid() bool {
+	return ks.d.Magic[0] == 0x27 &&
+		ks.d.Magic[1] == 0x5D &&
+		ks.d.Magic[2] == 0xBA &&
+		ks.d.Magic[3] == 0x35
 }
 
 // Unlike the JMicron one, the Initio DEK block is at a fixed offset
 // into the key sector.
-const dekOffset = 0x190
+const initioDEKOffset = 0x190
 
-func extractDEKBlock(keySector []byte) (*dekBlock, error) {
-	dekblock := new(dekBlock)
-	r := bytes.NewReader(keySector[initioDEKOffset:])
+func (ks *InitioKeySector) extractDEKBlock() error {
+	r := bytes.NewReader(ks.raw[initioDEKOffset:])
 	// The endianness is most likely right, but unimportant since every field is [...]byte.
-	err := binary.Read(r, binary.LittleEndian, dekblock)
-	if err != nil {
-		return nil, err
-	}
-	return dekblock, nil
+	return binary.Read(r, binary.LittleEndian, &(ks.d))
 }
 
-func (Initio) ExtractDEK(keySector []byte, kek []byte) (dek []byte, err error) {
-	// make a copy of these so the originals aren't touched
-	keySector = DupBytes(keySector)
-	kek = DupBytes(kek)
-
-	err = decryptKeySector(keySector, kek)
+func (ks *InitioKeySector) ExtractDEK() (dek []byte, err error) {
+	err = extractDEKBlock()
 	if err != nil {
 		return nil, err
 	}
-	dekblock, err := extractDEKBlock(keySector)
-	if err != nil {
-		return nil, err
-	}
-	if !dekblock.valid() {
-		return nil, ErrWrongKEK
+	if !ks.valid() {
+		return nil, bridge.ErrWrongKEK
 	}
 
-	dek = dekblock.Key[:]
+	// make a copy to avoid altering ks.d
+	dek = DupBytes(ks.d.Key[:])
 	SwapLongs(dek) // undo the little-endian-ness
 	SwapHalves(dek)
 	Reverse(dek)
