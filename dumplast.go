@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"encoding/hex"
 	"bytes"
 
 	"github.com/andlabs/reallymine/command"
@@ -34,12 +33,11 @@ func cDumpLast(d *disk.Disk) error {
 	if err = iter.Err(); err != nil {
 		return err
 	}
-	if !found {		// not found
+	if !found {
 		return fmt.Errorf("non-empty sector not found")
 	}
 
-	fmt.Printf("sector starting at %d\n", pos)
-	fmt.Printf("%s", hex.Dump(sector))
+	fmt.Print(dumpSector(sector, pos))
 	return nil
 }
 

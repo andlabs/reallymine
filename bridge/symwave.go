@@ -74,7 +74,7 @@ func (ks *SymwaveKeySector) DEK() (dek []byte, err error) {
 	// And again with the endianness stuff...
 	wrapped := ks.d.WrappedKEK[:]
 	SwapLongs(wrapped)
-	kek, err = gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, wrapped)
+	kek, err := gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, wrapped)
 	if err != nil {
 		return nil, err
 	}
