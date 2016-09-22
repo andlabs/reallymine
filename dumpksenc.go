@@ -8,7 +8,7 @@ import (
 	"github.com/andlabs/reallymine/disk"
 )
 
-func cDumpKSRaw(d *disk.Disk) error {
+func cDumpKSEnc(d *disk.Disk) error {
 	// TODO add -fakesize option of sorts
 	last := d.Size()
 	fks, err := findKeySector(d, last)
@@ -20,9 +20,9 @@ func cDumpKSRaw(d *disk.Disk) error {
 	return nil
 }
 
-var dumpksraw = &command.Command{
-	Name:		"dumpksraw",
+var dumpksenc = &command.Command{
+	Name:		"dumpksenc",
 	Args:		[]string{"disk"},
-	Description:	"Identifies and hexdumps the key sector in disk.",
-	Do:			cDumpKSRaw,
+	Description:	"Identifies and hexdumps the key sector in disk without decrypting it.",
+	Do:			cDumpKSEnc,
 }
