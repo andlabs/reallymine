@@ -96,7 +96,7 @@ func (argOutFileType) prepare(arg string) (out *argout, err error) {
 	if arg == "-" {
 		of = hex.Dumper(os.Stdout)
 	} else {
-		f, err := os.Open(arg)
+		f, err := os.Create(arg)
 		if err != nil {
 			return nil, err
 		}
