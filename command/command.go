@@ -3,15 +3,15 @@ package command
 
 import (
 	"fmt"
+	"os"
+	"io"
 	"strings"
 	"reflect"
-
-	"github.com/andlabs/reallymine/disk"
 )
 
 type Command struct {
 	Name		string
-	Args			[]string
+	Args			[]Arg
 	Description	string
 	Do			interface{}
 }
@@ -19,7 +19,6 @@ type Command struct {
 var (
 	// this is what text/template does
 	typeError = reflect.TypeOf((*error)(nil)).Elem()
-	typeDisk = reflect.TypeOf((*disk.Disk)(nil))
 )
 
 func (c *Command) validate() (issues []string) {
@@ -70,14 +69,12 @@ func (c *Command) validate() (issues []string) {
 		}
 	}
 
-	for i, arg := range c.Args {
-		switch arg {
-		case "disk":
-			if ft != nil && ft.In(i) != typeDisk {
-				bad("argument %d not of type *disk.Disk", i)
+	if ft != nil {
+		for i, arg := range c.Args {
+			t := arg.atype()
+			if ft.In(i) != t {
+				bad("argument %d not of type %s", i, t)
 			}
-		default:
-			bad("unknown argument type %q", arg)
 		}
 	}
 
@@ -87,21 +84,20 @@ func (c *Command) validate() (issues []string) {
 var ErrWrongArgCount = fmt.Errorf("wrong number of arguments")
 
 func (c *Command) Invoke(args []string) error {
+	var of io.WriteCloser
+
 	if len(args) != len(c.Args) {
 		return ErrWrongArgCount
 	}
 	fv := reflect.ValueOf(c.Do)
 	fa := make([]reflect.Value, len(args))
 	for i, arg := range c.Args {
-		switch arg {
-		case "disk":
-			d, err := disk.Open(args[i])
-			if err != nil {
-				return err
-			}
-			defer d.Close()
-			fa[i] = reflect.ValueOf(d)
+		out, err := arg.prepare(args[i])
+		if err != nil {
+			return err
 		}
+		defer out.deferfunc()
+		fa[i] = out.obj
 	}
 	out := fv.Call(fa)
 	ret := out[0].Interface()
@@ -121,6 +117,7 @@ func Validate(commands []*Command) (problems []string) {
 	return problems
 }
 
+// TODO use formatDescription()
 func FormatUsage(commands []*Command) string {
 	if len(commands) == 0 {
 		// this should not happen, but return something reasonable anyway
@@ -128,8 +125,12 @@ func FormatUsage(commands []*Command) string {
 	}
 	out := ""
 	for _, c := range commands {
+		arglist := ""
+		for _, a := range c.Args {
+			arglist += " " + argstr[a]
+		}
 		// See package flag's source for details on this formatting.
-		out += fmt.Sprintf("  %s %s\n", c.Name, strings.Join(c.Args, " "))
+		out += fmt.Sprintf("  %s%s\n", c.Name, arglist)
 		out += fmt.Sprintf("    	%s\n", c.Description)
 	}
 	return out
