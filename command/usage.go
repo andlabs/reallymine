@@ -9,7 +9,7 @@ import (
 // See package flag's source for details on this formatting.
 
 func usageL1(s string) string {
-	return mt.Sprintf("  %s\n", s)
+	return fmt.Sprintf("  %s\n", s)
 }
 
 func usageL2(format bool, s []string, args ...interface{}) string {

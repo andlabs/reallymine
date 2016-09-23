@@ -3,8 +3,6 @@ package command
 
 import (
 	"fmt"
-	"os"
-	"io"
 	"strings"
 	"reflect"
 )
@@ -35,7 +33,7 @@ func (c *Command) validate() (issues []string) {
 	if strings.Index(c.Name, " ") != -1 {
 		bad("name cannot contain spaces")
 	}
-	if c.Description == "" {
+	if len(c.Description) == 0 {
 		bad("description must be specified")
 	}
 
@@ -71,7 +69,7 @@ func (c *Command) validate() (issues []string) {
 
 	if ft != nil {
 		for i, arg := range c.Args {
-			t := arg.atype()
+			t := arg.argtype()
 			if ft.In(i) != t {
 				bad("argument %d not of type %s", i, t)
 			}
@@ -84,8 +82,6 @@ func (c *Command) validate() (issues []string) {
 var ErrWrongArgCount = fmt.Errorf("wrong number of arguments")
 
 func (c *Command) Invoke(args []string) error {
-	var of io.WriteCloser
-
 	if len(args) != len(c.Args) {
 		return ErrWrongArgCount
 	}

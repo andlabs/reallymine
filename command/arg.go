@@ -2,10 +2,8 @@
 package command
 
 import (
-	"fmt"
 	"os"
 	"io"
-	"strings"
 	"reflect"
 	"encoding/hex"
 
@@ -23,7 +21,7 @@ type argiface interface {
 	name() string
 	desc() []string
 	argtype() reflect.Type
-	prepare(arg string) (out *argout)
+	prepare(arg string) (out *argout, err error)
 }
 
 type arg struct {
@@ -37,7 +35,7 @@ var validArgs []Arg
 
 func addarg(a argiface) Arg {
 	aa := Arg{a}
-	validargs = append(validargs, aa)
+	validArgs = append(validArgs, aa)
 	return aa
 }
 
@@ -56,7 +54,7 @@ func (argDiskType) name() string {
 func (argDiskType) desc() []string {
 	return []string{
 		"a filename of a disk device or disk image;",
-		"must exist and be an even number of sectors long"
+		"must exist and be an even number of sectors long",
 	}
 }
 
@@ -98,10 +96,10 @@ func (argOutFileType) argtype() reflect.Type {
 }
 
 func (argOutFileType) prepare(arg string) (out *argout, err error) {
-	var of io.Writer
+	var of io.WriteCloser
 
 	if arg == "-" {
-		of = hex.NewDumper(os.Stdout)
+		of = hex.Dumper(os.Stdout)
 	} else {
 		f, err := os.Open(arg)
 		if err != nil {
@@ -116,7 +114,7 @@ func (argOutFileType) prepare(arg string) (out *argout, err error) {
 		// TODO we need to worry about multiplexing then
 		of.Close()
 	}
-	return out
+	return out, nil
 }
 
 var argOutFile = addarg(&argOutFileType{})
@@ -140,7 +138,7 @@ func (argOutImageType) argtype() reflect.Type {
 }
 
 func (argOutImageType) prepare(arg string) (out *argout, err error) {
-	f, err := os.OpenFile(args[i], os.WRONLY | os.O_CREAT | os.O_EXCL, 0644)
+	f, err := os.OpenFile(arg, os.O_WRONLY | os.O_CREATE | os.O_EXCL, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +155,8 @@ var ArgOutImage Arg = argOutImage
 
 // for command.go
 
-func (a Arg) atype() reflect.Type {
-	return a.a.atype()
+func (a Arg) argtype() reflect.Type {
+	return a.a.argtype()
 }
 
 // TODO rename argout and fields to something more sane for command.go
