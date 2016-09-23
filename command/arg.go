@@ -2,6 +2,7 @@
 package command
 
 import (
+	"fmt"
 	"os"
 	"io"
 	"reflect"
@@ -19,7 +20,7 @@ type argout struct {
 
 type argiface interface {
 	name() string
-	desc() []string
+	desc() string
 	argtype() reflect.Type
 	prepare(arg string) (out *argout, err error)
 }
@@ -51,11 +52,8 @@ func (argDiskType) name() string {
 	return "disk"
 }
 
-func (argDiskType) desc() []string {
-	return []string{
-		"a filename of a disk device or disk image;",
-		"must exist and be an even number of sectors long",
-	}
+func (argDiskType) desc() string {
+	return fmt.Sprintf("The filename of a disk device or disk image. The file must exist and must have a size which is a multiple of the sector size (%d bytes).", disk.SectorSize)
 }
 
 func (argDiskType) argtype() reflect.Type {
@@ -84,11 +82,8 @@ func (argOutFileType) name() string {
 	return "outfile"
 }
 
-func (argOutFileType) desc() []string {
-	return []string{
-		"either a file to perform a binary dump to",
-		"or - to perform a hexdump on stdout",
-	}
+func (argOutFileType) desc() string {
+	return "Either the name of a file to dump the raw data to or - to perform a hexdump on stdout."
 }
 
 func (argOutFileType) argtype() reflect.Type {
@@ -126,11 +121,8 @@ func (argOutImageType) name() string {
 	return "outimage"
 }
 
-func (argOutImageType) desc() []string {
-	return []string{
-		"a filename to write the output disk image to;",
-		"must not exist (reallymine will not overwrite existing files or media)",
-	}
+func (argOutImageType) desc() string {
+	return "The name of a file to write the output disk image to. This file must not exist already; reallymine will not overwrite an existing file or drive."
 }
 
 func (argOutImageType) argtype() reflect.Type {
@@ -172,12 +164,12 @@ func arglist(args []Arg) string {
 	return list
 }
 
-func formatDescription(desc []string, args []Arg) string {
+func formatDescription(desc string, args []Arg) string {
 	ai := make([]interface{}, len(args))
 	for i, a := range args {
 		ai[i] = a.a.name()
 	}
-	return usageL2(true, desc, ai...)
+	return usageL2(desc, ai...)
 }
 
 // for reallymine to use directly
@@ -186,7 +178,7 @@ func ArgUsage() string {
 	out := ""
 	for _, a := range validArgs {
 		out += usageL1(a.a.name())
-		out += usageL2(false, a.a.desc())
+		out += usageL2("%s", a.a.desc())
 	}
 	return out
 }

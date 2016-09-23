@@ -36,6 +36,6 @@ func cDumpKSDec(d *disk.Disk, out io.Writer) error {
 var dumpksdec = &command.Command{
 	Name:		"dumpksdec",
 	Args:		[]command.Arg{command.ArgDisk, command.ArgOutFile},
-	Description:	[]string{"Identifies, decrypts, and dumps the key sector on %s to %s."},
+	Description:	"Identifies, decrypts, and dumps the key sector on %s to %s.",
 	Do:			cDumpKSDec,
 }

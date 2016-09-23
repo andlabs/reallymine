@@ -24,6 +24,6 @@ func cDumpKSEnc(d *disk.Disk, out io.Writer) error {
 var dumpksenc = &command.Command{
 	Name:		"dumpksenc",
 	Args:		[]command.Arg{command.ArgDisk, command.ArgOutFile},
-	Description:	[]string{"Identifies and dumps the key sector in %s to %s without decrypting it."},
+	Description:	"Identifies and dumps the key sector on %s to %s without decrypting it.",
 	Do:			cDumpKSEnc,
 }

@@ -45,6 +45,6 @@ func cDumpLast(d *disk.Disk, out io.Writer) error {
 var dumplast = &command.Command{
 	Name:		"dumplast",
 	Args:		[]command.Arg{command.ArgDisk, command.ArgOutFile},
-	Description:	[]string{"Hexdumps the last non-zero sector in %s to %s."},
+	Description:	"Dumps the last non-zero sector on %s to %s.",
 	Do:			cDumpLast,
 }

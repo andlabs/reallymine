@@ -10,7 +10,7 @@ import (
 type Command struct {
 	Name		string
 	Args			[]Arg
-	Description	[]string
+	Description	string
 	Do			interface{}
 }
 
