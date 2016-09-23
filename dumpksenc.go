@@ -3,12 +3,13 @@ package main
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/andlabs/reallymine/command"
 	"github.com/andlabs/reallymine/disk"
 )
 
-func cDumpKSEnc(d *disk.Disk) error {
+func cDumpKSEnc(d *disk.Disk, out io.Writer) error {
 	// TODO add -fakesize option of sorts
 	last := d.Size()
 	fks, err := findKeySector(d, last)
@@ -22,7 +23,7 @@ func cDumpKSEnc(d *disk.Disk) error {
 
 var dumpksenc = &command.Command{
 	Name:		"dumpksenc",
-	Args:		[]string{"disk"},
-	Description:	"Identifies and hexdumps the key sector in disk without decrypting it.",
+	Args:		[]command.Arg{command.ArgDisk, command.ArgOutFile},
+	Description:	[]string{"Identifies and dumps the key sector in %s to %s without decrypting it."},
 	Do:			cDumpKSEnc,
 }

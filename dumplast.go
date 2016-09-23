@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"bytes"
 
 	"github.com/andlabs/reallymine/command"
@@ -11,7 +12,7 @@ import (
 
 var zeroSector [disk.SectorSize]byte
 
-func cDumpLast(d *disk.Disk) error {
+func cDumpLast(d *disk.Disk, out io.Writer) error {
 	var sector []byte
 
 	// TODO add -fakesize option of sorts
@@ -43,7 +44,7 @@ func cDumpLast(d *disk.Disk) error {
 
 var dumplast = &command.Command{
 	Name:		"dumplast",
-	Args:		[]string{"disk"},
-	Description:	"Hexdumps the last non-zero sector in disk.",
+	Args:		[]command.Arg{command.ArgDisk, command.ArgOutFile},
+	Description:	[]string{"Hexdumps the last non-zero sector in %s to %s."},
 	Do:			cDumpLast,
 }

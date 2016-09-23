@@ -3,13 +3,14 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"encoding/hex"
 
 	"github.com/andlabs/reallymine/command"
 	"github.com/andlabs/reallymine/disk"
 )
 
-func cDumpKSDec(d *disk.Disk) error {
+func cDumpKSDec(d *disk.Disk, out io.Writer) error {
 	// TODO add -fakesize option of sorts
 	last := d.Size()
 	fks, err := findKeySector(d, last)
@@ -34,7 +35,7 @@ func cDumpKSDec(d *disk.Disk) error {
 
 var dumpksdec = &command.Command{
 	Name:		"dumpksdec",
-	Args:		[]string{"disk"},
-	Description:	"Identifies, decrypts, and hexdumps the key sector in disk.",
+	Args:		[]command.Arg{command.ArgDisk, command.ArgOutFile},
+	Description:	[]string{"Identifies, decrypts, and dumps the key sector on %s to %s."},
 	Do:			cDumpKSDec,
 }

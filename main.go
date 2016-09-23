@@ -42,7 +42,10 @@ func usage() {
 	errf("options:\n")
 	flag.PrintDefaults()
 	errf("commands:\n")
+	// TODO refine these names?
 	errf("%s", command.FormatUsage(Commands))
+	errf("command arguments:\n")
+	errf("%s", command.ArgUsage())
 	os.Exit(1)
 }
 

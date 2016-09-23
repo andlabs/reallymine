@@ -23,7 +23,8 @@ func (c *Command) validate() (issues []string) {
 	var ft reflect.Type
 
 	bad := func(format string, args ...interface{}) {
-		issues = append(issues, fmt.Sprintf(format, args...))
+		s := c.Name + ": " + fmt.Sprintf(format, args...)
+		issues = append(issues, s)
 		// don't stop testing; there might be multiple issues
 	}
 
