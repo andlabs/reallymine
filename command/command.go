@@ -12,7 +12,7 @@ import (
 type Command struct {
 	Name		string
 	Args			[]Arg
-	Description	string
+	Description	[]string
 	Do			interface{}
 }
 
@@ -117,7 +117,6 @@ func Validate(commands []*Command) (problems []string) {
 	return problems
 }
 
-// TODO use formatDescription()
 func FormatUsage(commands []*Command) string {
 	if len(commands) == 0 {
 		// this should not happen, but return something reasonable anyway
@@ -125,13 +124,8 @@ func FormatUsage(commands []*Command) string {
 	}
 	out := ""
 	for _, c := range commands {
-		arglist := ""
-		for _, a := range c.Args {
-			arglist += " " + argstr[a]
-		}
-		// See package flag's source for details on this formatting.
-		out += fmt.Sprintf("  %s%s\n", c.Name, arglist)
-		out += fmt.Sprintf("    	%s\n", c.Description)
+		out += usageL1(c.Name + arglist(c.Args))
+		out += formatDescription(c.Description, c.Args)
 	}
 	return out
 }

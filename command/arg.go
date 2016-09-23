@@ -21,7 +21,7 @@ type argout struct {
 
 type argiface interface {
 	name() string
-	desc() string
+	desc() []string
 	argtype() reflect.Type
 	prepare(arg string) (out *argout)
 }
@@ -53,8 +53,11 @@ func (argDiskType) name() string {
 	return "disk"
 }
 
-func (argDiskType) desc() string {
-	return "a filename of a disk device or disk image; must exist and be an even number of sectors long"
+func (argDiskType) desc() []string {
+	return []string{
+		"a filename of a disk device or disk image;",
+		"must exist and be an even number of sectors long"
+	}
 }
 
 func (argDiskType) argtype() reflect.Type {
@@ -83,8 +86,11 @@ func (argOutFileType) name() string {
 	return "outfile"
 }
 
-func (argOutFileType) desc() string {
-	return "either a file to perform a binary dump to or - to perform a hexdump on stdout"
+func (argOutFileType) desc() []string {
+	return []string{
+		"either a file to perform a binary dump to",
+		"or - to perform a hexdump on stdout",
+	}
 }
 
 func (argOutFileType) argtype() reflect.Type {
@@ -122,8 +128,11 @@ func (argOutImageType) name() string {
 	return "outimage"
 }
 
-func (argOutImageType) desc() string {
-	return "a filename to write the output disk image to; must not exist (reallymine will not overwrite existing files or media)"
+func (argOutImageType) desc() []string {
+	return []string{
+		"a filename to write the output disk image to;",
+		"must not exist (reallymine will not overwrite existing files or media)",
+	}
 }
 
 func (argOutImageType) argtype() reflect.Type {
@@ -157,13 +166,20 @@ func (a Arg) prepare(arg string) (*argout, error) {
 	return a.a.prepare(arg)
 }
 
-// TODO allow multiline c.Descriptions
-func formatDescription(desc string, args []Arg) string {
+func arglist(args []Arg) string {
+	list := ""
+	for _, a := range args {
+		list += " " + a.a.name()
+	}
+	return list
+}
+
+func formatDescription(desc []string, args []Arg) string {
 	ai := make([]interface{}, len(args))
 	for i, a := range args {
 		ai[i] = a.a.name()
 	}
-	return fmt.Sprintf(desc, ai...)
+	return usageL2(true, desc, ai...)
 }
 
 // for reallymine to use directly
@@ -171,10 +187,8 @@ func formatDescription(desc string, args []Arg) string {
 func ArgUsage() string {
 	out := ""
 	for _, a := range validArgs {
-		// See package flag's source for details on this formatting.
-		out += fmt.Sprintf("  %s%s\n", a.a.name())
-		out += fmt.Sprintf("    	%s\n", a.a.desc())
-		// TODO allow multiline descriptions
+		out += usageL1(a.a.name())
+		out += usageL2(false, a.a.desc())
 	}
 	return out
 }
