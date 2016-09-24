@@ -38,8 +38,9 @@ func cDumpLast(d *disk.Disk, out io.Writer) error {
 		return fmt.Errorf("non-empty sector not found")
 	}
 
-	fmt.Print(dumpSector(sector, pos))
-	return nil
+	fmt.Printf("sector at 0x%X\n", pos)
+	_, err = out.Write(sector)
+	return err
 }
 
 var dumplast = &command.Command{
