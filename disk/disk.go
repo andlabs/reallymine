@@ -11,66 +11,50 @@ const SectorSize = 512
 
 // Disk is currently not safe for concurrent use.
 type Disk struct {
-	f	*os.File
-	size	int64
+	r		*io.SectionReader
+	close	func() error
 }
 
-func Open(filename string) (d *Disk, err error) {
-	d = new(Disk)
-	d.f, err = os.Open(filename)
+func Open(filename string, size int64) (d *Disk, err error) {
+	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
-	d.size, err = d.f.Seek(0, io.SeekEnd)
-	if err != nil {
-		d.f.Close()
+	errfail := func(err error) (*Disk, error) {
+		f.Close()
 		return nil, err
 	}
-	if d.size % SectorSize != 0 {
-		d.f.Close()
-		return nil, fmt.Errorf("disk size is not a multiple of the sector size; this is likely not a disk")
+	realsize, err := f.Seek(0, io.SeekEnd)
+	if err != nil {
+		return errfail(err)
 	}
-	return d, nil
+	if size == -1 {
+		size = realsize
+	} else if size > realsize {
+		return errfail(fmt.Errorf("requested disk size larger than actual disk size"))
+	}
+	if size % SectorSize != 0 {
+		return errfail(fmt.Errorf("disk size is not a multiple of the sector size; this is likely not a disk"))
+	}
+	return &Disk{
+		r:		io.NewSectionReader(f, 0, size),
+		close:	f.Close,
+	}, nil
 }
 
 func (d *Disk) Close() error {
-	return d.f.Close()
+	return d.close()
 }
 
 func (d *Disk) Size() int64 {
-	return d.size
+	return d.r.Size()
 }
-
-/* TODO
-func TryGetDecrypter(keySector []byte, bridge Bridge, askPassword func(firstTime bool) (password string, cancelled bool)) (c cipher.Block) {
-	try := func(keySector []byte, bridge Bridge, kek []byte) cipher.Block {
-		return bridge.CreateDecrypter(keySector, kek)
-	}
-
-	if !bridge.NeedsKEK() {
-		return try(keySector, bridge, nil) // should not return nil
-	}
-
-	c = try(keySector, bridge, DefaultKEK)
-	firstTime := true
-	for c == nil { // whlie the default KEK didn't work or the user password is wrong
-		password, cancelled := askPassword(firstTime)
-		if cancelled { // user aborted
-			return nil
-		}
-		kek := KEKFromPassword(password)
-		c = try(keySector, bridge, kek)
-		firstTime = false // in case the password was wrong
-	}
-	return c
-}
-*/
 
 func (d *Disk) ReadSectorsAt(sectors []byte, pos int64) (int, error) {
 	if len(sectors) % SectorSize != 0 {
 		return 0, io.ErrShortBuffer		// TODO better error?
 	}
-	n, err := d.f.ReadAt(sectors, pos)
+	n, err := d.r.ReadAt(sectors, pos)
 	if err == io.EOF {
 		if n == 0 {		// this is truly the end of the disk
 			return 0, io.EOF

@@ -11,6 +11,10 @@ import (
 	"github.com/andlabs/reallymine/disk"
 )
 
+// DiskSize is passed as the size parameter to disk.Open() when an
+// argument of type ArgDisk is processed.
+var DiskSize int64 = -1
+
 type argout struct {
 	obj			reflect.Value
 	deferfunc		func()
@@ -61,7 +65,7 @@ func (argDiskType) argtype() reflect.Type {
 }
 
 func (argDiskType) prepare(arg string) (out *argout, err error) {
-	d, err := disk.Open(arg)
+	d, err := disk.Open(arg, DiskSize)
 	if err != nil {
 		return nil, err
 	}
