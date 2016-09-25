@@ -23,6 +23,13 @@ func NewAsker(cmdstr string) *Asker {
 }
 
 const (
+	AskReal = "-real"
+	AskOnce = "-askonce"
+	AskOnly = "-onlyask"
+	AskDefault = "-default"
+)
+
+const (
 	noteNeedsPassword = "You need the WD password to decrypt this drive."
 	notePasswordWrong = "Wrong WD password."
 )
@@ -49,7 +56,7 @@ func (a *Asker) Ask() bool {
 		a.count++
 	}()
 	switch a.cmdstr {
-	case "-real":
+	case AskReal:
 		switch a.count {
 		case 0:		// first time, return default
 			a.kek = Default
@@ -59,19 +66,19 @@ func (a *Asker) Ask() bool {
 		}
 		// all other times, note password is wrong
 		return a.realAsk(notePasswordWrong)
-	case "-askonce":
+	case AskOnce:
 		// only ask once, then return no more
 		// note not needed since we explicitly asked
 		if a.count != 0 {
 			return false
 		}
 		return a.realAsk("")
-	case "-onlyask":
+	case AskOnly:
 		if a.count == 0 {
 			return a.realAsk("")
 		}
 		return a.realAsk(notePasswordWrong)
-	case "-default":
+	case AskDefault:
 		if a.count != 0 {
 			return false
 		}
@@ -97,8 +104,8 @@ func (a *Asker) Err() error {
 const AskerDescription = "" +
 	"This specifies a KEK to decrypt the key sector with. " +
 	"This argument can be one of the following strings:\n" +
-	"- -real to use the default KEK and then ask for a password until the correct one is used, just like the main decrypt command\n" +
-	"- -askonce to ask for a password once and only use the resultant KEK\n" +
-	"- -onlyask to only ask for passwords until the correct one is used\n" +
-	"- -default to only use the default KEK\n" +
+	"- " + AskReal + " to use the default KEK and then ask for a password until the correct one is used, just like the main decrypt command\n" +
+	"- " + AskOnce + " to ask for a password once and only use the resultant KEK\n" +
+	"- " + AskOnly + " to only ask for passwords until the correct one is used\n" +
+	"- " + AskDefault + " to only use the default KEK\n" +
 	"Any other string is taken as a hexadecimal string to use as the KEK."
