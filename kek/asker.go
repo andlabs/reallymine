@@ -27,12 +27,14 @@ const (
 	notePasswordWrong = "Wrong WD password."
 )
 
+// TODO how to get the secure insert icon in OS X Terminal?
 func (a *Asker) realAsk(note string) bool {
 	if note != "" {
 		fmt.Printf("%s\n", note)
 	}
 	fmt.Print("Enter WD password: ")
 	pw, err := password.Read(os.Stdin)
+	fmt.Println()		// because password.Read() doesn't
 	if err != nil {		// including cancelled
 		a.err = err
 		return false

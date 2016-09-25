@@ -108,8 +108,13 @@ func Validate(commands []*Command) (problems []string) {
 	if len(commands) == 0 {
 		return []string{"no commands"}
 	}
+	seen := make(map[string]bool, len(commands))
 	for _, c := range commands {
 		problems = append(problems, c.validate()...)
+		if seen[c.Name] {
+			problems = append(problems, c.Name + " declared more than once")
+		}
+		seen[c.Name] = true
 	}
 	return problems
 }
