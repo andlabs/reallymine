@@ -22,9 +22,11 @@ func die(format string, args ...interface{}) {
 }
 
 var Commands = []*command.Command{
+	// TODO have a clear separation between user commands and research commands? if so, decrypt and getdek go above the rest
 	dumplast,
 	dumpkeysector,
 	decryptkeysector,
+	getdek,
 }
 
 func init() {

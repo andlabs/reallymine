@@ -1,0 +1,46 @@
+// 25 september 2016
+package main
+
+import (
+	"fmt"
+	"io"
+
+	"github.com/andlabs/reallymine/command"
+	"github.com/andlabs/reallymine/disk"
+	"github.com/andlabs/reallymine/kek"
+)
+
+func runUntilDEK(d *disk.Disk, out io.Writer) (dec *Decrypter, err error) {
+	dec = &Decrypter{
+		Disk:		d,
+		Out:		out,
+	}
+	err = dec.FindKeySector()
+	if err != nil {
+		return nil, err
+	}
+	err = dec.ExtractDEK(kek.NewAsker(kek.AskReal))
+	if err != nil {
+		return nil, err
+	}
+	return dec, nil
+}
+
+func cGetDEK(d *disk.Disk) error {
+	dec, err := runUntilDEK(d, nil)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s\n", formatBridge(dec.Bridge))
+	fmt.Printf("DEK: %s\n", formatKey(dec.DEK))
+	// TODO print decryption loop steps
+	return nil
+}
+
+var getdek = &command.Command{
+	Name:		"getdek",
+	Args:		[]command.Arg{command.ArgDisk},
+	Description:	"Gets the DEK to use on %s and prints it on stdout.",
+	Do:			cGetDEK,
+}
