@@ -269,7 +269,7 @@ func (argDecryptionStepsType) prepare(arg string) (out *argout, err error) {
 	out = new(argout)
 	out.obj = reflect.ValueOf(steps)
 	out.deferfunc = func() {}
-	return out
+	return out, nil
 }
 
 var argDecryptionSteps = addarg(&argDecryptionStepsType{})

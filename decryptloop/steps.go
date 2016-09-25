@@ -122,29 +122,13 @@ var StepSwapHalves Step = stepSwapHalves
 
 type StepList []Step
 
-func (s StepList) String() string {
-	names := make([]string, len(s))
-	for i, step := range s {
-		names[i] = step.s.name()
-	}
-	return strings.Join(names, " ")
-}
-
 type UnknownStepNameError string
 
 func (e UnknownStepNameError) Error() string {
 	return fmt.Sprintf("unknown decrypt loop step name %q", string(e))
 }
 
-// for diskusage.go
-
-func (s StepList) runBlock(c cipher.Block, b []byte) {
-	for _, step := range s {
-		step.s.do(c, b)
-	}
-}
-
-func stepListFromString(s string) (StepList, error) {
+func StepListFromString(s string) (StepList, error) {
 	names := strings.Split(s, " ")
 	steps := make(StepList, len(names))
 	for i, name := range names {
@@ -155,6 +139,22 @@ func stepListFromString(s string) (StepList, error) {
 		steps[i] = step
 	}
 	return steps, nil
+}
+
+func (s StepList) String() string {
+	names := make([]string, len(s))
+	for i, step := range s {
+		names[i] = step.s.name()
+	}
+	return strings.Join(names, " ")
+}
+
+// for diskusage.go
+
+func (s StepList) runBlock(c cipher.Block, b []byte) {
+	for _, step := range s {
+		step.s.do(c, b)
+	}
 }
 
 // for reallymine to use directly

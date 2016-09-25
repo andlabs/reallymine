@@ -22,14 +22,6 @@ func New(steps []Step, c cipher.Block, out io.Writer) *DecryptLoop {
 	}
 }
 
-func FromString(s string, c cipher.Block, out io.Writer) (*DecryptLoop, error) {
-	steps, err := stepListFromString(s)
-	if err != nil {
-		return nil, err
-	}
-	return New(steps, c, out), nil
-}
-
 func (dl *DecryptLoop) writeBlock() (n int, err error) {
 	dl.steps.runBlock(dl.c, dl.buf)
 	n, err = dl.out.Write(dl.buf)
