@@ -1,86 +1,10 @@
-// 22 october 2015
-
-// +build OMIT
-
-package main
-
-import (
-	"fmt"
-	"os"
-	"flag"
-	"strings"
-	"encoding/hex"
-	"bytes"
-)
-
-/*
-
-	infname := os.Args[1]
-	outfname := os.Args[2]
-
-	in, err := os.Open(infname)
-	if err != nil {
-		die("error opening encrypted file %s: %v", infname, err)
-	}
-	defer in.Close()
+const NumSectorsAtATime = 102400
 
 	// TODO make sure infile is not a device
 	// we must outright forbid it because we aren't running sector-to-sector anymore
-
-	insize, err := in.Seek(0, 2)
-	if err != nil {
-		errf("error finding size of encrypted file %s: %v", infname, err)
-	}
-
-	fmt.Printf("Finding key sector...\n")
-	keySector, bridge := FindKeySectorAndBridge(in, insize)
-	if bridge == nil {
-		errf("Sorry, we couldn't find the key sector.\n")
-		errf("Either the drive isn't a complete image,\n")
-		errf("or the encryption isn't supported yet.\n")
-		os.Exit(1)
-	}
-	fmt.Printf("Found %s.\n", bridge.Name())
-	if !bridge.NeedsKEK() {
-		fmt.Printf("You will not need to enter your password\n")
-		fmt.Printf("for this bridge chip.\n")
-	} else {
-		fmt.Printf("Trying without a password...\n")
-	}
-
-	c := TryGetDecrypter(keySector, bridge, func(firstTime bool) (password string, cancelled bool) {
-		if firstTime {
-			fmt.Printf("The drive's password is needed to decrypt your drive.\n")
-			fmt.Printf("Please enter it now.\n")
-		} else {
-			fmt.Printf("Password incorrect.\n")
-		}
-		// TODO
-		os.Exit(2)
-		panic("unreachable")
-	})
-	if c == nil {
-		fmt.Printf("User aborted operation.\n")
-		os.Exit(1)
-	}
+	// TODO or are we?
 
 	// TODO decrypt a few sectors to verify the partition table
-
-	_, err = in.Seek(0, 0)
-	if err != nil {
-		die("error seeking back to start of decrypted file %s: %v", infname, err)
-	}
-
-	out, err := os.OpenFile(outfname, os.O_WRONLY | os.O_CREATE | os.O_EXCL, 0644)
-	if err != nil {
-		if os.IsExist(err) {
-			errf("Error creating decrypted file %s: %v\n", outfname, err)
-			errf("%s will not overwrite a file that already exists.\n", os.Args[0])
-			errf("In particular, %s does not allow in-place decryption.\n", os.Args[0])
-			os.Exit(1)
-		}
-		die("error creating decrypted file %s: %v", outfname, err)
-	}
 
 	fmt.Printf("Beginning decryption!\n")
 	sectors := make([]byte, NumSectorsAtATime * SectorSize)
@@ -90,7 +14,3 @@ import (
 		n += NumMBAtATime
 		fmt.Printf("%d MB / %d MB complete.\n", n, inmb)
 	}
-
-	fmt.Printf("Completed successfully!\n")
-}
-*/
