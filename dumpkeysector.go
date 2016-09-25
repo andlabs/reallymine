@@ -52,6 +52,6 @@ var dumpkeysector = &command.Command{
 var decryptkeysector = &command.Command{
 	Name:		"decryptkeysector",
 	Args:		[]command.Arg{command.ArgDisk, command.ArgOutFile, command.ArgKEK},
-	Description:	"Identifies, decrypts, and dumps the key sector on %s to %s.",
+	Description:	"Identifies, decrypts, and dumps the key sector on %s to %s using %s.",
 	Do:			cDecryptKeySector,
 }
