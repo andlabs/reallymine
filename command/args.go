@@ -41,6 +41,7 @@ type Arg arg
 // for usage information
 var validArgs []Arg
 
+// TODO complain if any arguments have duplicated names
 func addarg(a argiface) Arg {
 	aa := Arg{a}
 	validArgs = append(validArgs, aa)
@@ -212,7 +213,7 @@ var ArgDEK Arg = argDEK
 type argInFileType struct{}
 
 func (argInFileType) name() string {
-	return "outfile"
+	return "infile"
 }
 
 func (argInFileType) desc() string {
