@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 
 	"github.com/andlabs/reallymine/disk"
+	"github.com/andlabs/reallymine/kek"
 )
 
 // DiskSize is passed as the size parameter to disk.Open() when an
@@ -48,6 +49,7 @@ var (
 	typeDisk = reflect.TypeOf((*disk.Disk)(nil))
 	typeWriter = reflect.TypeOf((*io.Writer)(nil)).Elem()
 	typeFile = reflect.TypeOf((*os.File)(nil))
+	typeAsker = reflect.TypeOf((*kek.Asker)(nil))
 )
 
 type argDiskType struct{}
@@ -148,6 +150,31 @@ func (argOutImageType) prepare(arg string) (out *argout, err error) {
 
 var argOutImage = addarg(&argOutImageType{})
 var ArgOutImage Arg = argOutImage
+
+type argKEKType struct{}
+
+func (argKEKType) name() string {
+	return "kek"
+}
+
+func (argKEKType) desc() string {
+	return kek.AskerDescription
+}
+
+func (argKEKType) argtype() reflect.Type {
+	return typeAsker
+}
+
+func (argKEKType) prepare(arg string) (out *argout, err error) {
+	asker := kek.NewAsker(arg)
+	out = new(argout)
+	out.obj = reflect.ValueOf(asker)
+	out.deferfunc = func() {}
+	return out, nil
+}
+
+var argKEK = addarg(&argKEKType{})
+var ArgKEK Arg = argKEK
 
 // for command.go
 

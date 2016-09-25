@@ -91,3 +91,12 @@ func (a *Asker) KEK() []byte {
 func (a *Asker) Err() error {
 	return a.err
 }
+
+const AskerDescription = "" +
+	"This specifies a KEK to decrypt the key sector with. " +
+	"This argument can be one of the following strings:\n" +
+	"- -real to use the default KEK and then ask for a password until the correct one is used, just like the main decrypt command\n" +
+	"- -askonce to ask for a password once and only use the resultant KEK\n" +
+	"- -onlyask to only ask for passwords until the correct one is used\n" +
+	"- -default to only use the default KEK\n" +
+	"Any other string is taken as a hexadecimal string to use as the KEK."

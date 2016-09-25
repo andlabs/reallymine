@@ -23,8 +23,8 @@ func die(format string, args ...interface{}) {
 
 var Commands = []*command.Command{
 	dumplast,
-	dumpksenc,
-	dumpksdec,
+//TODO	dumpksenc,
+//TODO	dumpksdec,
 }
 
 func init() {
