@@ -14,40 +14,41 @@ import (
 )
 
 type Decrypter struct {
-	d	*disk.Disk
-	out	io.Writer
+	Disk		*disk.Disk
+	Out		io.Writer
+
+	EncryptedKeySector		[]byte
+	KeySectorPos			int64
+	Bridge				bridge.Bridge
+
+	KeySector		bridge.KeySector
+	DEK			[]byte
 }
 
-func askForPassword() (pw string, err error) {
-	fmt.Print("Enter WD password: ")
-	return password.Read(os.Stdin)
-}
-
-func (d *Decrypter) Decrypt() error {
-	var sector []byte
-	var pos int64
-	var bridge bridge.Bridge
-
+func (d *Decrypter) FindKeySector() error {
 	// TODO allow a way to hook in every so often if the search takes too long
-	iter, err := d.ReverseIter(startAt)
+	iter, err := d.Disk.ReverseIter(startAt)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for iter.Next() {
-		sector = iter.Sectors()
-		pos = iter.Pos()
-		bridge = bridge.IdentifyKeySector(fks.sector)
-		if bridge != nil {
+		d.EncryptedKeySector = iter.Sectors()
+		d.Pos = iter.Pos()
+		d.Bridge = bridge.IdentifyKeySector(fks.sector)
+		if d.Bridge != nil {
 			break
 		}
 	}
 	if err = iter.Err(); err != nil {
-		return nil, err
+		return err
 	}
-	if bridge == nil {
-		return nil, fmt.Errorf("key sector not found")
+	if d.Bridge == nil {
+		return fmt.Errorf("key sector not found")
 	}
+	return nil
+}
 
+{
 	var ks bridge.KeySector
 	var curkek []byte
 	var dek []byte
@@ -69,12 +70,6 @@ func (d *Decrypter) Decrypt() error {
 		first := true
 		try()
 		for err == bridge.ErrWrongKEK {
-			if first {
-				fmt.Printf("You need the WD password to decrypt this drive.\n")
-				first = false
-			} else {
-				fmt.Printf("Wrong WD password.\n")
-			}
 			pw, err := askForPassword()
 			if err != nil {		// includes cancelled
 				return nil, err
