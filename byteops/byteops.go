@@ -11,6 +11,15 @@ func Reverse(b []byte) {
 	}
 }
 
+func SwapWords(b []byte) {
+	if len(b)%2 != 0 {
+		panic("SwapWords() called with len(b) not a multiple of 2")
+	}
+	for i := 0; i < len(b); i += 2 {
+		b[i+0], b[i+1] = b[i+1], b[i+0]
+	}
+}
+
 func SwapLongs(b []byte) {
 	if len(b)%4 != 0 {
 		panic("SwapLongs() called with len(b) not a multiple of 4")
