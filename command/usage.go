@@ -13,12 +13,14 @@ func usageL1(s string) string {
 	return fmt.Sprintf("  %s\n", s)
 }
 
+const prefixL2 = "    	"
+
 func usageL2(format string, args ...interface{}) string {
 	s := fmt.Sprintf(format, args...)
 	lines := wrapL2(s)
 	s = ""
 	for _, t := range lines {
-		s += "    	" + t + "\n"
+		s += prefixL2 + t + "\n"
 	}
 	return s
 }
@@ -52,4 +54,9 @@ func wrapL2(s string) (wrapped []string) {
 		}
 	}
 	return wrapped
+}
+
+func ToFlagUsage(s string) string {
+	wrapped := wrapL2(s)
+	return strings.Join(wrapped, "\n" + prefixL2)
 }

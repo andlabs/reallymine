@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/andlabs/reallymine/command"
-//	"github.com/andlabs/reallymine/disk"
+	"github.com/andlabs/reallymine/disk"
 )
 
 func errf(format string, args ...interface{}) {
@@ -35,6 +35,11 @@ func init() {
 		errf("this means andlabs made a mistake; contact him\n")
 		os.Exit(1)
 	}
+}
+
+func init() {
+	flag.Int64Var(&command.DiskSize, "disk-size", -1,
+		command.ToFlagUsage(fmt.Sprintf("Overrides the size of the disk to use, allowing you to pretend the disk is smaller than it is. This value must be less than or equal to the disk's actual size, and must be a multiple of the sector size (%d bytes). If the size is -1, the disk's actual size is used.", disk.SectorSize)))
 }
 
 func usage() {
