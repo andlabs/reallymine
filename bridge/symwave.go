@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
+	"github.com/andlabs/reallymine/byteops"
 	"github.com/mendsley/gojwe"
 )
 
@@ -55,7 +56,7 @@ var symwaveKEKWrappingKey = []byte{
 
 func (Symwave) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) {
 	return &SymwaveKeySector{
-		raw:		DupBytes(keySector),
+		raw:		byteops.DupBytes(keySector),
 	}, nil
 }
 
@@ -73,30 +74,30 @@ func (ks *SymwaveKeySector) DEK() (dek []byte, err error) {
 
 	// And again with the endianness stuff...
 	wrapped := ks.d.WrappedKEK[:]
-	SwapLongs(wrapped)
+	byteops.SwapLongs(wrapped)
 	kek, err := gojwe.AesKeyUnwrap(symwaveKEKWrappingKey, wrapped)
 	if err != nil {
 		return nil, err
 	}
 
 	wrapped = ks.d.WrappedDEK1[:]
-	SwapLongs(wrapped)
+	byteops.SwapLongs(wrapped)
 	dek1, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
 		return nil, err
 	}
 
 	wrapped = ks.d.WrappedDEK2[:]
-	SwapLongs(wrapped)
+	byteops.SwapLongs(wrapped)
 	dek2, err := gojwe.AesKeyUnwrap(kek, wrapped)
 	if err != nil {
 		return nil, err
 	}
 
-	dek = DupBytes(dek1)
+	dek = byteops.DupBytes(dek1)
 	_ = dek2		// doesn't seem to be used
 	// And finally we just need one last endian correction...
-	SwapLongs(dek)
+	byteops.SwapLongs(dek)
 	return dek, nil
 }
 

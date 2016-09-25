@@ -6,6 +6,8 @@ import (
 	"crypto/cipher"
 	"crypto/aes"
 	"encoding/binary"
+
+	"github.com/andlabs/reallymine/byteops"
 )
 
 type JMicron struct{}
@@ -51,19 +53,19 @@ type JMicronKeySector struct {
 
 func (JMicron) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) {
 	// copy these to avoid overwriting them
-	keySector = DupBytes(keySector)
-	kek = DupBytes(kek)
+	keySector = byteops.DupBytes(keySector)
+	kek = byteops.DupBytes(kek)
 
-	Reverse(kek)
+	byteops.Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
 	if err != nil {
 		return nil, err
 	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
-		Reverse(block)
+		byteops.Reverse(block)
 		kekcipher.Decrypt(block, block)
-		Reverse(block)
+		byteops.Reverse(block)
 	}
 
 	return &JMicronKeySector{
@@ -111,16 +113,16 @@ func (ks *JMicronKeySector) DEK() (dek []byte, err error) {
 	dek = make([]byte, 32)
 	copy(dek[:16], ks.d.Key3EE2[:])
 	copy(dek[16:], ks.d.Key3EF2[:])
-	Reverse(dek)
+	byteops.Reverse(dek)
 	return dek, nil
 }
 
 func (JMicron) Decrypt(c cipher.Block, b []byte) {
 	for i := 0; i < len(b); i += 16 {
 		block := b[i : i+16]
-		Reverse(block)
+		byteops.Reverse(block)
 		c.Decrypt(block, block)
-		Reverse(block)
+		byteops.Reverse(block)
 	}
 }
 

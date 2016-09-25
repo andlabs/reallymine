@@ -6,6 +6,8 @@ import (
 	"crypto/cipher"
 	"crypto/aes"
 	"encoding/binary"
+
+	"github.com/andlabs/reallymine/byteops"
 )
 
 type Initio struct{}
@@ -36,18 +38,18 @@ type InitioKeySector struct {
 
 func (Initio) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) {
 	// copy to avoid clobbering
-	keySector = DupBytes(keySector)
-	kek = DupBytes(kek)
+	keySector = byteops.DupBytes(keySector)
+	kek = byteops.DupBytes(kek)
 
-	SwapHalves(kek)
-	Reverse(kek)
+	byteops.SwapHalves(kek)
+	byteops.Reverse(kek)
 	kekcipher, err := aes.NewCipher(kek)
 	if err != nil {
 		return nil, err
 	}
 	for i := 0; i < len(keySector); i += 16 {
 		block := keySector[i : i+16]
-		SwapLongs(block)
+		byteops.SwapLongs(block)
 		kekcipher.Decrypt(block, block)
 		// Don't swap back; it'll be correct as-is.
 	}
@@ -84,20 +86,20 @@ func (ks *InitioKeySector) DEK() (dek []byte, err error) {
 	}
 
 	// make a copy to avoid altering ks.d
-	dek = DupBytes(ks.d.Key[:])
-	SwapLongs(dek) // undo the little-endian-ness
-	SwapHalves(dek)
-	Reverse(dek)
+	dek = byteops.DupBytes(ks.d.Key[:])
+	byteops.SwapLongs(dek) // undo the little-endian-ness
+	byteops.SwapHalves(dek)
+	byteops.Reverse(dek)
 	return dek, nil
 }
 
 func (Initio) Decrypt(c cipher.Block, b []byte) {
 	for i := 0; i < len(b); i += 16 {
 		block := b[i : i+16]
-		SwapLongs(block)
+		byteops.SwapLongs(block)
 		c.Decrypt(block, block)
 		// We DO need to swap again after this, though!
-		SwapLongs(block)
+		byteops.SwapLongs(block)
 	}
 }
 
