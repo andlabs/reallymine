@@ -1,19 +1,14 @@
 // 24 september 2016
-
-// +build TODO
-
 package main
 
 import (
 	"fmt"
-	"os"
 	"io"
-	"encoding/hex"
+	"crypto/aes"
 
 	"github.com/andlabs/reallymine/disk"
 	"github.com/andlabs/reallymine/bridge"
 	"github.com/andlabs/reallymine/kek"
-	"github.com/hashicorp/vault/helper/password"
 )
 
 type Decrypter struct {
@@ -30,15 +25,14 @@ type Decrypter struct {
 }
 
 func (d *Decrypter) FindKeySector() error {
-	// TODO allow a way to hook in every so often if the search takes too long
-	iter, err := d.Disk.ReverseIter(startAt)
+	iter, err := d.Disk.ReverseIter(d.Disk.Size())
 	if err != nil {
 		return err
 	}
 	for iter.Next() {
 		d.EncryptedKeySector = iter.Sectors()
-		d.Pos = iter.Pos()
-		d.Bridge = bridge.IdentifyKeySector(fks.sector)
+		d.KeySectorPos = iter.Pos()
+		d.Bridge = bridge.IdentifyKeySector(d.EncryptedKeySector)
 		if d.Bridge != nil {
 			break
 		}
@@ -52,56 +46,60 @@ func (d *Decrypter) FindKeySector() error {
 	return nil
 }
 
-func (d *Decrypter) DecryptKeySector(a *kek.Asker) error {
-	var ks bridge.KeySector
-	var dek []byte
+func (d *Decrypter) decryptKeySector() (err error) {
+	d.KeySector, err = d.Bridge.DecryptKeySector(d.EncryptedKeySector, d.KEK)
+	if err != nil {
+		return err
+	}
+	d.DEK, err = d.KeySector.DEK()
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-	if !b.NeedsKEK() {
-		d.KEK, err = ks.DEK()
+func (d *Decrypter) ExtractDEK(a *kek.Asker) (err error) {
+	if !d.Bridge.NeedsKEK() {
+		return d.decryptKeySector()
+	}
+
+	for a.Ask() {
+		d.KEK = a.KEK()
+		err = d.decryptKeySector()
+		if err == bridge.ErrWrongKEK {
+			continue
+		}
 		if err != nil {
 			return err
 		}
-	} else {
-		wrong := false
-		for a.Ask() {
-			d.KEK = a.KEK()
-			d.KeySector, err = b.DecryptKeySector(d.EncryptedKeySector, d.KEK)
-			if err != nil {
-				return err
-			}
-			d.DEK, err = ks.DEK()
-			if err == bridge.ErrWrongKEK {
-				wrong = true
-				continue
-			}
-			if err != nil {
-				return err
-			}
-			wrong = false
-			break
-		}
-		if err := a.Err(); err != nil {
-			return err
-		}
-		// preserve bridge.ErrWrongKEK if we asked to use a specific KEK or used -askonce
-		if wrong {
-			return bridge.ErrWrongKEK
-		}
+		break
 	}
-
+	// preserve bridge.ErrWrongKEK if we asked to use a specific KEK or used -askonce
+	wrong := err == bridge.ErrWrongKEK
+	// but return this error first
+	if err := a.Err(); err != nil {
+		return err
+	}
+	if wrong {
+		return bridge.ErrWrongKEK
+	}
 	return nil
 }
 
 func (d *Decrypter) DecryptDisk() error {
+	cipher, err := aes.NewCipher(d.DEK)
+	if err != nil {
+		return err
+	}
 	// TODO refine or allow custom buffer sizes?
-	iter, err = d.Iter(0, 1)
+	iter, err := d.Disk.Iter(0, 1)
 	if err != nil {
 		return err
 	}
 	for iter.Next() {
 		s := iter.Sectors()
-		bridge.Decrypt(s)
-		_, err = out.Write(s)
+		d.Bridge.Decrypt(cipher, s)
+		_, err = d.Out.Write(s)
 		if err != nil {
 			return err
 		}
