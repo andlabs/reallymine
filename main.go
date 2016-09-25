@@ -9,6 +9,7 @@ import (
 
 	"github.com/andlabs/reallymine/command"
 	"github.com/andlabs/reallymine/disk"
+	"github.com/andlabs/reallymine/decryptloop"
 )
 
 func errf(format string, args ...interface{}) {
@@ -53,6 +54,8 @@ func usage() {
 	errf("%s", command.FormatUsage(Commands))
 	errf("command arguments:\n")
 	errf("%s", command.ArgUsage())
+	errf("decryption steps:\n")
+	errf("%s", decryptloop.StepUsage())
 	os.Exit(1)
 }
 

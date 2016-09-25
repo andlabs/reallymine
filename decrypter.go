@@ -11,6 +11,7 @@ import (
 	"github.com/andlabs/reallymine/kek"
 )
 
+// TODO rename this type
 type Decrypter struct {
 	Disk		*disk.Disk
 	Out		io.Writer
@@ -74,7 +75,7 @@ func (d *Decrypter) ExtractDEK(a *kek.Asker) (err error) {
 		}
 		break
 	}
-	// preserve bridge.ErrWrongKEK if we asked to use a specific KEK or used -askonce
+	// preserve bridge.ErrWrongKEK if we asked to use a specific KEK or used -askonce or -default
 	wrong := err == bridge.ErrWrongKEK
 	// but return this error first
 	if err := a.Err(); err != nil {
