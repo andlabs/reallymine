@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"io"
+	"io/ioutil"
 	"reflect"
 	"encoding/hex"
 
 	"github.com/andlabs/reallymine/disk"
 	"github.com/andlabs/reallymine/kek"
+	"github.com/andlabs/reallymine/decryptloop"
 )
 
 // DiskSize is passed as the size parameter to disk.Open() when an
@@ -50,6 +52,9 @@ var (
 	typeWriter = reflect.TypeOf((*io.Writer)(nil)).Elem()
 	typeFile = reflect.TypeOf((*os.File)(nil))
 	typeAsker = reflect.TypeOf((*kek.Asker)(nil))
+	typeByteSlice = reflect.TypeOf([]byte(nil))
+	typeReader = reflect.TypeOf((*io.Reader)(nil)).Elem()
+	typeStepList = reflect.TypeOf(decryptloop.StepList(nil))
 )
 
 type argDiskType struct{}
@@ -175,6 +180,100 @@ func (argKEKType) prepare(arg string) (out *argout, err error) {
 
 var argKEK = addarg(&argKEKType{})
 var ArgKEK Arg = argKEK
+
+type argDEKType struct{}
+
+func (argDEKType) name() string {
+	return "dek"
+}
+
+func (argDEKType) desc() string {
+	return "A hexadecimal string to use as the DEK."
+}
+
+func (argDEKType) argtype() reflect.Type {
+	return typeByteSlice
+}
+
+func (argDEKType) prepare(arg string) (out *argout, err error) {
+	b, err := hex.DecodeString(arg)
+	if err != nil {
+		return nil, err
+	}
+	out = new(argout)
+	out.obj = reflect.ValueOf(b)
+	out.deferfunc = func() {}
+	return out, nil
+}
+
+var argDEK = addarg(&argDEKType{})
+var ArgDEK Arg = argDEK
+
+type argInFileType struct{}
+
+func (argInFileType) name() string {
+	return "outfile"
+}
+
+func (argInFileType) desc() string {
+	return "Either the name of a file to read from or - to read from stdin."
+}
+
+func (argInFileType) argtype() reflect.Type {
+	return typeReader
+}
+
+func (argInFileType) prepare(arg string) (out *argout, err error) {
+	var inf io.ReadCloser
+
+	if arg == "-" {
+		// don't /actually/ close os.Stdin
+		inf = ioutil.NopCloser(os.Stdin)
+	} else {
+		f, err := os.Open(arg)
+		if err != nil {
+			return nil, err
+		}
+		inf = f
+	}
+	out = new(argout)
+	out.obj = reflect.ValueOf(inf)
+	out.deferfunc = func() {
+		inf.Close()
+	}
+	return out, nil
+}
+
+var argInFile = addarg(&argInFileType{})
+var ArgInFile Arg = argInFile
+
+type argDecryptionStepsType struct{}
+
+func (argDecryptionStepsType) name() string {
+	return "decryption-steps"
+}
+
+func (argDecryptionStepsType) desc() string {
+	return "A space-delimited list of decryption steps. Must not be empty. Because this is space-delimited, wrap this argument in quotes to have your shell treat the list as one argument."
+}
+
+func (argDecryptionStepsType) argtype() reflect.Type {
+	return typeStepList
+}
+
+func (argDecryptionStepsType) prepare(arg string) (out *argout, err error) {
+	steps, err := decryptloop.StepListFromString(arg)
+	if err != nil {
+		return nil, err
+	}
+	out = new(argout)
+	out.obj = reflect.ValueOf(steps)
+	out.deferfunc = func() {}
+	return out
+}
+
+var argDecryptionSteps = addarg(&argDecryptionStepsType{})
+var ArgDecryptionSteps Arg = argDecryptionSteps
 
 // for command.go
 
