@@ -24,6 +24,7 @@ type Decrypter struct {
 	KeySectorPos			int64
 	Bridge				bridge.Bridge
 
+	KEK			[]byte
 	KeySector		bridge.KeySector
 	DEK			[]byte
 }
@@ -42,7 +43,7 @@ func (d *Decrypter) FindKeySector() error {
 			break
 		}
 	}
-	if err = iter.Err(); err != nil {
+	if err := iter.Err(); err != nil {
 		return err
 	}
 	if d.Bridge == nil {
@@ -51,40 +52,47 @@ func (d *Decrypter) FindKeySector() error {
 	return nil
 }
 
-{
+func (d *Decrypter) DecryptKeySector(a *kek.Asker) error {
 	var ks bridge.KeySector
-	var curkek []byte
 	var dek []byte
 
-	try := func() {
-		ks, err = b.DecryptKeySector(sector, curkek)
-		if err == nil {
-			dek, err = ks.DEK()
-		}
-	}
-
 	if !b.NeedsKEK() {
-		dek, err = ks.DEK()
+		d.KEK, err = ks.DEK()
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else {
-		curkek = kek.Default
-		first := true
-		try()
-		for err == bridge.ErrWrongKEK {
-			pw, err := askForPassword()
-			if err != nil {		// includes cancelled
-				return nil, err
+		wrong := false
+		for a.Ask() {
+			d.KEK = a.KEK()
+			d.KeySector, err = b.DecryptKeySector(d.EncryptedKeySector, d.KEK)
+			if err != nil {
+				return err
 			}
-			curkek = kek.FromPassword(pw)
-			try()
+			d.DEK, err = ks.DEK()
+			if err == bridge.ErrWrongKEK {
+				wrong = true
+				continue
+			}
+			if err != nil {
+				return err
+			}
+			wrong = false
+			break
 		}
-		if err != nil {
-			return nil, err
+		if err := a.Err(); err != nil {
+			return err
+		}
+		// preserve bridge.ErrWrongKEK if we asked to use a specific KEK or used -askonce
+		if wrong {
+			return bridge.ErrWrongKEK
 		}
 	}
 
+	return nil
+}
+
+func (d *Decrypter) DecryptDisk() error {
 	// TODO refine or allow custom buffer sizes?
 	iter, err = d.Iter(0, 1)
 	if err != nil {
