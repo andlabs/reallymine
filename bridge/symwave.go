@@ -2,11 +2,11 @@
 package bridge
 
 import (
-	"crypto/cipher"
 	"bytes"
 	"encoding/binary"
 
 	"github.com/andlabs/reallymine/byteops"
+	"github.com/andlabs/reallymine/decryptloop"
 	"github.com/mendsley/gojwe"
 )
 
@@ -101,11 +101,10 @@ func (ks *SymwaveKeySector) DEK() (dek []byte, err error) {
 	return dek, nil
 }
 
-func (Symwave) Decrypt(c cipher.Block, b []byte) {
-	for i := 0; i < len(b); i += 16 {
-		block := b[i : i+16]
-		// ...and we can just use block as-is!
-		c.Decrypt(block, block)
+func (Symwave) DecryptLoopSteps() decryptloop.StepList {
+	return decryptloop.StepList{
+		// ...and we can just decrypt the encrypted blocks as-is!
+		decryptloop.StepDecrypt,
 	}
 }
 

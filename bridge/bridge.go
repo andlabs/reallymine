@@ -3,7 +3,8 @@ package bridge
 
 import (
 	"fmt"
-	"crypto/cipher"
+
+	"github.com/andlabs/reallymine/decryptloop"
 )
 
 var ErrWrongKEK = fmt.Errorf("wrong KEK")
@@ -16,7 +17,7 @@ type Bridge interface {
 	// do not check if KEK is wrong; that will be done in KeySector.DEK()
 	// this way, we can still use KeySector.Raw() for research and debugging
 	DecryptKeySector(keySector []byte, kek []byte) (ks KeySector, err error)
-	Decrypt(c cipher.Block, b []byte)
+	DecryptLoopSteps() decryptloop.StepList
 }
 
 type KeySector interface {

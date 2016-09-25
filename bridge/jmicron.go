@@ -3,11 +3,11 @@ package bridge
 
 import (
 	"bytes"
-	"crypto/cipher"
 	"crypto/aes"
 	"encoding/binary"
 
 	"github.com/andlabs/reallymine/byteops"
+	"github.com/andlabs/reallymine/decryptloop"
 )
 
 type JMicron struct{}
@@ -117,12 +117,11 @@ func (ks *JMicronKeySector) DEK() (dek []byte, err error) {
 	return dek, nil
 }
 
-func (JMicron) Decrypt(c cipher.Block, b []byte) {
-	for i := 0; i < len(b); i += 16 {
-		block := b[i : i+16]
-		byteops.Reverse(block)
-		c.Decrypt(block, block)
-		byteops.Reverse(block)
+func (JMicron) DecryptLoopSteps() decryptloop.StepList {
+	return decryptloop.StepList{
+		decryptloop.StepReverse,
+		decryptloop.StepDecrypt,
+		decryptloop.StepReverse,
 	}
 }
 

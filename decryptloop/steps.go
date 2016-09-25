@@ -4,6 +4,7 @@ package decryptloop
 import (
 	"fmt"
 	"crypto/cipher"
+	"strings"
 
 	"github.com/andlabs/reallymine/byteops"
 )
@@ -30,7 +31,7 @@ var stepsByName = make(map[string]Step)
 func addstep(s stepiface) Step {
 	ss := Step{s}
 	validSteps = append(validSteps, ss)
-	stepsByName[ss.name()] = ss
+	stepsByName[ss.s.name()] = ss
 	return ss
 }
 
@@ -119,14 +120,41 @@ func (stepSwapHalvesType) do(c cipher.Block, b []byte) {
 var stepSwapHalves = addstep(&stepSwapHalvesType{})
 var StepSwapHalves Step = stepSwapHalves
 
-// for diskusage.go
+type StepList []Step
 
-func (s Step) name() string {
-	return s.s.name()
+func (s StepList) String() string {
+	names := make([]string, len(s))
+	for i, step := range s {
+		names[i] = step.s.name()
+	}
+	return strings.Join(names, " ")
 }
 
-func (s Step) do(c cipher.Block, b []byte) {
-	s.s.do(c, b)
+type UnknownStepNameError string
+
+func (e UnknownStepNameError) Error() string {
+	return fmt.Sprintf("unknown decrypt loop step name %q", string(e))
+}
+
+// for diskusage.go
+
+func (s StepList) runBlock(c cipher.Block, b []byte) {
+	for _, step := range s {
+		step.s.do(c, b)
+	}
+}
+
+func stepListFromString(s string) (StepList, error) {
+	names := strings.Split(s, " ")
+	steps := make(StepList, len(names))
+	for i, name := range names {
+		step, ok := stepsByName[name]
+		if !ok {
+			return nil, UnknownStepNameError(name)
+		}
+		steps[i] = step
+	}
+	return steps, nil
 }
 
 // for reallymine to use directly
@@ -135,7 +163,7 @@ func (s Step) do(c cipher.Block, b []byte) {
 func StepUsage() string {
 	s := ""
 	for _, step := range validSteps {
-		s += fmt.Sprintf("  %s - %s\n", step.name(), step.s.desc())
+		s += fmt.Sprintf("  %s - %s\n", step.s.name(), step.s.desc())
 	}
 	return s
 }

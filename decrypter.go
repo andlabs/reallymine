@@ -9,6 +9,7 @@ import (
 	"github.com/andlabs/reallymine/disk"
 	"github.com/andlabs/reallymine/bridge"
 	"github.com/andlabs/reallymine/kek"
+	"github.com/andlabs/reallymine/decryptloop"
 )
 
 // TODO rename this type
@@ -92,6 +93,8 @@ func (d *Decrypter) DecryptDisk() error {
 	if err != nil {
 		return err
 	}
+	steps := d.Bridge.DecryptLoopSteps()
+	dl := decryptloop.New(steps, cipher, d.Out)
 	// TODO refine or allow custom buffer sizes?
 	iter, err := d.Disk.Iter(0, 1)
 	if err != nil {
@@ -99,8 +102,7 @@ func (d *Decrypter) DecryptDisk() error {
 	}
 	for iter.Next() {
 		s := iter.Sectors()
-		d.Bridge.Decrypt(cipher, s)
-		_, err = d.Out.Write(s)
+		_, err = dl.Write(s)
 		if err != nil {
 			return err
 		}

@@ -34,13 +34,14 @@ func cGetDEK(d *disk.Disk) error {
 
 	fmt.Printf("%s\n", formatBridge(dec.Bridge))
 	fmt.Printf("DEK: %s\n", formatKey(dec.DEK))
-	// TODO print decryption loop steps
+	// TODO make this a format function?
+	fmt.Printf("decryption steps: %v\n", dec.Bridge.DecryptLoopSteps())
 	return nil
 }
 
 var getdek = &command.Command{
 	Name:		"getdek",
 	Args:		[]command.Arg{command.ArgDisk},
-	Description:	"Gets the DEK to use on %s and prints it on stdout.",
+	Description:	"Gets the DEK and decryption steps to use on %s and prints it on stdout.",
 	Do:			cGetDEK,
 }
