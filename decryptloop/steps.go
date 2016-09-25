@@ -128,8 +128,13 @@ func (e UnknownStepNameError) Error() string {
 	return fmt.Sprintf("unknown decrypt loop step name %q", string(e))
 }
 
+var ErrStepListStringEmpty = fmt.Sprintf("step list string is empty/specifies no steps")
+
 func StepListFromString(s string) (StepList, error) {
 	names := strings.Split(s, " ")
+	if len(names) == 0 {
+		return nil, ErrStepListStringEmpty
+	}
 	steps := make(StepList, len(names))
 	for i, name := range names {
 		step, ok := stepsByName[name]
@@ -159,7 +164,7 @@ func (s StepList) runBlock(c cipher.Block, b []byte) {
 
 // for reallymine to use directly
 
-// TODO merge with package command
+// TODO merge with package command - can't use command directly since that imports us
 func StepUsage() string {
 	s := ""
 	for _, step := range validSteps {
