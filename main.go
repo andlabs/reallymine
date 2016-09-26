@@ -30,6 +30,7 @@ var Commands = []*command.Command{
 	getdek,
 	dumpfirst,		// TODO above or below dumplast?
 	decryptfile,
+	decrypt,
 }
 
 func init() {

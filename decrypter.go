@@ -88,19 +88,26 @@ func (d *Decrypter) ExtractDEK(a *kek.Asker) (err error) {
 	return nil
 }
 
+const NumSectorsAtATime = 102400
+
 func (d *Decrypter) DecryptDisk() error {
 	cipher, err := aes.NewCipher(d.DEK)
 	if err != nil {
 		return err
 	}
 	steps := d.Bridge.DecryptLoopSteps()
+	// TODO remove when PLX is finished
+	if len(steps) == 0 {
+		return fmt.Errorf("** The %s bridge's decryption scheme is not yet known. Please contact andlabs to help contribute it to reallymine.", d.Bridge.Name())
+	}
 	dl := decryptloop.New(steps, cipher, d.Out)
 	// TODO refine or allow custom buffer sizes?
-	iter, err := d.Disk.Iter(0, 1)
+	iter, err := d.Disk.Iter(0, NumSectorsAtATime)
 	if err != nil {
 		return err
 	}
 	for iter.Next() {
+		// TODO report progress in MB
 		s := iter.Sectors()
 		_, err = dl.Write(s)
 		if err != nil {

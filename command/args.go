@@ -137,8 +137,9 @@ func (argOutImageType) desc() string {
 	return "The name of a file to write the output disk image to. This file must not exist already; reallymine will not overwrite an existing file or drive."
 }
 
+// TODO use typeFile?
 func (argOutImageType) argtype() reflect.Type {
-	return typeFile
+	return typeWriter
 }
 
 func (argOutImageType) prepare(arg string) (out *argout, err error) {

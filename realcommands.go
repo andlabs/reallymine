@@ -45,3 +45,18 @@ var getdek = &command.Command{
 	Description:	"Gets the DEK and decryption steps to use on %s and prints it on stdout.",
 	Do:			cGetDEK,
 }
+
+func cDecrypt(d *disk.Disk, out io.Writer) error {
+	dec, err := runUntilDEK(d, out)
+	if err != nil {
+		return err
+	}
+	return dec.DecryptDisk()
+}
+
+var decrypt = &command.Command{
+	Name:		"decrypt",
+	Args:		[]command.Arg{command.ArgDisk, command.ArgOutImage},
+	Description:	"Decrypts the entire disk %s to %s.",
+	Do:			cDecrypt,
+}
