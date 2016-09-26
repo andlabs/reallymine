@@ -12,6 +12,26 @@ $ reallymine [options] command [args...]
 
 Pass `--help` for more detailed explanations.
 
+## Installing
+Stable versions of reallymine are available from the Releases page on GitHub.
+
+reallymine is written in Go. If you want to build it from source, install Go and then simply run
+
+```
+$ go get github.com/andlabs/reallymine
+```
+
+This will get reallymine and its dependencies and place the resultant binary in your `$GOPATH/bin`.
+
+If you want to manually download reallymine, you will need to have the dependencies installed separately:
+
+```
+github.com/mendsley/gojwe
+	for the AES key-unwrapping code used to extract the DEK from Symwave chips
+github.com/hashicorp/vault/helper/password
+	for password entry
+```
+
 ## Decrypting a Drive
 The most common operation is decrypting an entire drive. Let's say the drive is at `/dev/sdb` and you want to decrypt it to a file `decrypted.img`. You would just say
 
@@ -69,11 +89,17 @@ The DEK can likely be read out of the decrypted key sector.
 
 The `dumpfirst` command, which takes the same form as the `dumplast` command, dumps the first few sectors of your hard drive without decrypting them. This will likely contain the partition map of your drive, allowing it to be used to verify that a DEK is correct without leaking any of your sensitive data.
 
+But simply knowing the DEK is not enough; you also need to know how to transform the data before and after decrypting to get the data back out properly. This is done with the `decryptfile` command, which does not deal with a disk at all. It takes four parameters: an input file to decrypt (or `-` for standard input), an output file to decrypt to (or `-` for a hexdump to stdout), the DEK as a hexadecimal string, and then a space-delimited string containing the decryption steps, such as those shown in the example output of the `getdek` command. Use `--help` for a full list of possible steps.
+
+More specific usage information can be seen with `--help`.
+
 ## Contributing
-As I mentioned earlier, `reallymine` is vastly incomplete. It only handles two of the four known bridge chips Western Digital used, and only supports one encryption mode. If you're willing to provide a few sectors from your drive (typically one of the last sectors and a few of the first ones), you can do so in the github issue tracker, and I can use them to improve this program! (Don't worry; I only need the boot sectors and decryption key; I won't need any of your actual data. The sectors won't go into the source repository either.)
+reallymine is already quite capable, but is still in need of improvement to handle every possible case. If your drive isn't handled already, feel free to open an issue on GitHub to contribute your key sectors and partition maps, either by following the steps above or with our help. (Don't worry; I only need the boot sectors and decryption key; I won't need any of your actual data. The sectors won't go into the source repository either.)
+
+Code contributions are also welcome.
 
 ## License
-Because of those "data recovery experts" mentioned in notes/story.md, this project is licensed under the GPL version 3. You should be the one who owns your data, not other people. (In fact I'm wondering if this whole encryption thing is solely in place for their benefit.)
+This project is licensed under the GPL version 3. This is to ensure that the research that went into reallymine stays open.
 
 TODO should I switch to Affero GPL, just to be safe?
 
@@ -82,6 +108,4 @@ TODO should I switch to Affero GPL, just to be safe?
 - Sik (minor documentation fixes)
 - FraGag (minor 68020 information)
 - fd0 (irc.freenode.net #go-nuts; help with dealing with decryption keys)
-
-## TODOs
-- Elaborate on this README a bit; mention notes.
+- Everyone else from IRC and the GitHub issues I forgot to thank
