@@ -28,6 +28,7 @@ var validSteps []Step
 
 var stepsByName = make(map[string]Step)
 
+// TODO complain on duplicates
 func addstep(s stepiface) Step {
 	ss := Step{s}
 	validSteps = append(validSteps, ss)
