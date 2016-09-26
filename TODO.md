@@ -1,1 +1,2 @@
 - decrypt a few sectors to verify the partition table, or provide a tool to try to guess the partition table or something
+- delete outimages on error?
