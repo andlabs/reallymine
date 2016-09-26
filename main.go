@@ -29,6 +29,7 @@ var Commands = []*command.Command{
 	decryptkeysector,
 	getdek,
 	dumpfirst,		// TODO above or below dumplast?
+	decryptfile,
 }
 
 func init() {

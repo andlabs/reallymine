@@ -128,7 +128,7 @@ func (e UnknownStepNameError) Error() string {
 	return fmt.Sprintf("unknown decrypt loop step name %q", string(e))
 }
 
-var ErrStepListStringEmpty = fmt.Sprintf("step list string is empty/specifies no steps")
+var ErrStepListStringEmpty = fmt.Errorf("step list string is empty/specifies no steps")
 
 func StepListFromString(s string) (StepList, error) {
 	names := strings.Split(s, " ")
