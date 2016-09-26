@@ -39,8 +39,7 @@ func IdentifyKeySector(possibleKeySector []byte) Bridge {
 
 type IncompleteImplementationError string
 
-// TODO unexport
-func IncompleteImplementation(format string, args ...interface{}) IncompleteImplementationError {
+func incompleteImpl(format string, args ...interface{}) IncompleteImplementationError {
 	return IncompleteImplementationError(fmt.Sprintf(format, args...))
 }
 

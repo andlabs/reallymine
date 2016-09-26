@@ -107,7 +107,7 @@ func (ks *JMicronKeySector) DEK() (dek []byte, err error) {
 	}
 
 	if ks.d.KeySize != 0x20 {
-		return nil, IncompleteImplementation("The size of the encryption key in your JMicron sector (%d) is not known.", ks.d.KeySize)
+		return nil, incompleteImpl("The size of the encryption key in your JMicron sector (%d) is not known.", ks.d.KeySize)
 	}
 
 	dek = make([]byte, 32)
