@@ -28,7 +28,7 @@ var Commands = []*command.Command{
 	dumpkeysector,
 	decryptkeysector,
 	getdek,
-	dumpfirst,		// TODO above or below dumplast?
+	dumpfirst,
 	decryptfile,
 	decrypt,
 }
