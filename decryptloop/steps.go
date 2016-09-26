@@ -147,6 +147,10 @@ func StepListFromString(s string) (StepList, error) {
 }
 
 func (s StepList) String() string {
+	// TODO remove this when PLX is done
+	if len(s) == 0 {
+		return "(unknown)"
+	}
 	names := make([]string, len(s))
 	for i, step := range s {
 		names[i] = step.s.name()
