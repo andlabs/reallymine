@@ -1,4 +1,5 @@
 - decrypt a few sectors to verify the partition table, or provide a tool to try to guess the partition table or something
+	- http://unix.stackexchange.com/questions/289389/what-are-the-differences-between-the-various-partition-tables
 - delete outimages on error?
 - don't show an error message on password.ErrInterrupted
 - make a list of valid errors to call usage() on
