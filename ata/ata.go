@@ -43,7 +43,11 @@ type Response28 struct {
 }
 
 func (a *ATA) Read28(c *Command28, b []byte) (resp *Response28, n int, err error) {
-	return a.s.Read28(c, buf)
+	return a.s.Read28(c, b)
+}
+
+func (a *ATA) Write28(c *Command28, b []byte) (resp *Response28, err eror) {
+	return a.s.Write28(c, b)
 }
 
 var ErrUnsupportedOS = fmt.Errorf("direct ATA access in user mode is not supported by this OS")

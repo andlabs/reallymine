@@ -80,12 +80,22 @@ type _ATA_PASS_THROUGH_EX struct {
 	CurrentTaskFile	[8]uint8
 }
 
+const (
+	_ATA_FLAGS_DRDY_REQUIRED = 0x01
+	_ATA_FLAGS_DATA_IN =0x02
+	_ATA_FLAGS_DATA_OUT = 0x04
+	_ATA_FLAGS_48BIT_COMMAND = 0x08
+
+	_IOCTL_ATA_PASS_THROUGH = 0x04D02C
+)
+
 var sizeofPTE = binary.Sizeof(_ATA_PASS_THROUGH_EX{})
 
 func (c *Command28) toNT(flags uint16, buf []byte) (send []byte, err error) {
 	var pte _ATA_PASS_THROUGH_EX
 
 	pte.Length = uint16(sizeofPTE)
+	// TODO _ATA_FLAGS_DRDY_REQUIRED?
 	pte.AtaFlags = flags
 	pte.DataTransferLength = uint32(len(buf))
 	pte.TimeOutValue = ^uint32(0)		// TODO
@@ -115,34 +125,32 @@ func (c *Command28) toNTRead(outbuf []byte) (send []byte, recv []byte, err error
 	return send, recv, nil
 }
 
-func from28(recv []byte) (resp *Response28, err error) {
+func (c *Command28) toNTWrite(inbuf []byte) (send []byte, recv []byte, err error) {
+	s, err := c.toNT(_ATA_FLAGS_DATA_OUT, inbuf)
+	if err != nil {
+		return nil, nil, err
+	}
+	send = make([]byte, len(s) + len(inbuf))
+	copy(send[:len(s)], s)
+	copy(send[len(s):], inbuf)
+	recv = make([]byte, sizeofPTE)
+	return send, recv, nil
+}
+
+type out struct {
+	recv		[]byte
+	pte		_ATA_PASS_THROUGH_EX
+	resp		*Response28
+}
+
+func (a *sysATA) perform(send []byte, recv []byte, err error) (o *out, err error) {
+	var count uint32
 	var pte _ATA_PASS_THROUGH_EX
 
-	r := bytes.NewReader(recv)
-	err = binary.Read(r, binary.LittleEndian, &pte)
 	if err != nil {
 		return nil, err
 	}
 
-	resp = new(Response28)
-	resp.Error = pte.CurrentTaskFile[0]
-	resp.Count = pte.CurrentTaskFile[1]
-	resp.LBALow = pte.CurrentTaskFile[2]
-	resp.LBAMid = pte.CurrentTaskFile[3]
-	resp.LBAHigh = pte.CurrentTaskFile[4]
-	resp.Device = pte.CurrentTaskFile[5]
-	resp.Status = pte.CurrentTaskFile[6]
-
-	return resp, nil
-}
-
-func (a *sysATA) Read28(c *Command28, b []byte) (resp *Response28, n int, err error) {
-	var count uint32
-
-	send, recv, err := c.toNTRead(b)
-	if err != nil {
-		return nil, 0, err
-	}
 	err = windows.DeviceIoControl(a.handle,
 		_IOCTL_ATA_PASS_THROUGH,
 		&send[0],
@@ -152,13 +160,45 @@ func (a *sysATA) Read28(c *Command28, b []byte) (resp *Response28, n int, err er
 		&count,
 		nil)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	recv = recv[:count]
-	copy(b, recv[sizeofPTE:])
-	resp, err = from28(recv[:sizeofPTE])
+
+	r := bytes.NewReader(recv[:sizeofPTE])
+	err = binary.Read(r, binary.LittleEndian, &pte)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(Response28)
+	resp.Error = pte.CurrentTaskFile[0]
+	resp.Count = pte.CurrentTaskFile[1]
+	resp.LBALow = pte.CurrentTaskFile[2]
+	resp.LBAMid = pte.CurrentTaskFile[3]
+	resp.LBAHigh = pte.CurrentTaskFile[4]
+	resp.Device = pte.CurrentTaskFile[5]
+	resp.Status = pte.CurrentTaskFile[6]
+
+	return &out{
+		recv:		recv[pte.DataBufferOffset:],
+		pte:		pte,
+		resp:		resp,
+	}, nil
+}
+
+func (a *sysATA) Read28(c *Command28, b []byte) (resp *Response28, n int, err error) {
+	out, err := a.perform(c.toNTRead(b))
 	if err != nil {
 		return nil, 0, err
 	}
-	return resp, int(count), nil
+	copy(b, out.recv)
+	return out.resp, len(out.recv), nil
+}
+
+func (a *sysATA) Write28(c *Command28, b []byte) (resp *Response28, err error) {
+	out, err := a.perform(c.toNTWrite(b))
+	if err != nil {
+		return nil, err
+	}
+	return out.resp, nil
 }

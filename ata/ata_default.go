@@ -21,5 +21,9 @@ func (a *sysATA) Close() error {
 }
 
 func (a *sysATA) Read28(c *Command28, b []byte) (resp *Response28, n int, err error) {
+	return nil, 0, ErrUnsupportedOS
+}
+
+func (a *sysATA) Write28(c *Command28, b []byte) (resp *Response28, err error) {
 	return nil, ErrUnsupportedOS
 }
