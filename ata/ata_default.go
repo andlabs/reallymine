@@ -4,6 +4,9 @@
 
 package ata
 
+// Systems that will only ever have this version of the package:
+// - OS X: https://developer.apple.com/library/content/qa/qa1179/_index.html
+
 // TODO show a not yet implemented error on systems that are not OS X
 
 func sysDrivespecUsage() string {
