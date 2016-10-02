@@ -23,7 +23,7 @@ func New(steps StepList, c cipher.Block, out io.Writer) *DecryptLoop {
 	}
 }
 
-// report only what of b we consumed, not what was written to the underlying writer
+// report only how much of Write()'s b we consumed, not how much was written to the underlying writer
 func (dl *DecryptLoop) writeBlock() (err error) {
 	dl.pos = 0
 	dl.steps.runBlock(dl.c, dl.buf)
@@ -43,6 +43,7 @@ func (dl *DecryptLoop) writeIter(b []byte) (n int, err error) {
 	return n, dl.writeBlock()
 }
 
+// TODO write a test suite to ensure this is working properly
 func (dl *DecryptLoop) Write(b []byte) (n int, err error) {
 	for len(b) > 0 {
 		n2, err := dl.writeIter(b)
