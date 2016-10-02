@@ -8,6 +8,12 @@
 	- Windows: DeviceIoControl(), just like the Unlock.exe tool
 	- OS X: requires a kernel module? https://developer.apple.com/library/content/qa/qa1179/_index.html
 	- others: not possible?
-
-- Test
--- Test
+- switch to tv's cliutil?
+	- https://godoc.org/github.com/tv42/cliutil
+	- https://godoc.org/github.com/tv42/cliutil/flagx
+	- https://godoc.org/github.com/tv42/cliutil/subcommands
+	- https://godoc.org/github.com/tv42/cliutil/positional
+	- https://github.com/tv42/sinus
+	- https://github.com/tv42/sinus/blob/master/main.go
+	- https://github.com/tv42/sinus/blob/master/cli/cli.go
+	- https://github.com/tv42/cliutil/blob/master/positional/parse.go#L57 about wrapping types for positional
