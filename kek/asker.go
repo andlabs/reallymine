@@ -9,17 +9,57 @@ import (
 	"github.com/hashicorp/vault/helper/password"
 )
 
+// TODO rearrange the parts of this package
+
+type askfn func() (kek []byte, repeat bool, err error)
+
+func askSpecific(b []byte) askfn {
+	return func() ([]byte, bool, error) {
+		return b, false, nil
+	}
+}
+
+func askUser(note string, repeat bool) askfn {
+	return func() ([]byte, bool, error) {
+		kek, err := realAskUser(note)
+		return kek, repeat, err
+	}
+}
+
 type Asker struct {
-	cmdstr	string
+	fns		[]askfn
 	kek		[]byte
-	count	uint
 	err		error
 }
 
-func NewAsker(cmdstr string) *Asker {
+func mkasker(fns ...askfn) (*Asker, error) {
 	return &Asker{
-		cmdstr:	cmdstr,
+		fns:		fns,
+	}, nil
+}
+
+// TODO see if we can have AskReal, etc. be instances to avoid a useless error check
+func NewAsker(cmdstr string) (a *Asker, err error) {
+	switch cmdstr {
+	case AskReal:
+		return mkasker(
+			askSpecific(Default),
+			askUser(noteNeedsPassword, false),
+			askUser(notePasswordWrong, true))
+	case AskOnce:
+		return mkasker(askUser("", false))
+	case AskOnly:
+		return mkasker(
+			askUser("", false),
+			askUser(notePasswordWrong, true))
+	case AskDefault:
+		return mkasker(askSpecific(Default))
 	}
+	kek, err := hex.DecodeString(cmdstr)
+	if err != nil {
+		return nil, err
+	}
+	return mkasker(askSpecific(kek))
 }
 
 const (
@@ -35,7 +75,7 @@ const (
 )
 
 // TODO how to get the secure insert icon in OS X Terminal?
-func (a *Asker) realAsk(note string) bool {
+func realAskUser(note string) (kek []byte, err error) {
 	if note != "" {
 		fmt.Printf("%s\n", note)
 	}
@@ -43,54 +83,28 @@ func (a *Asker) realAsk(note string) bool {
 	pw, err := password.Read(os.Stdin)
 	fmt.Println()		// because password.Read() doesn't
 	if err != nil {		// including cancelled
-		a.err = err
-		return false
+		return nil, err
 	}
-	a.kek = FromPassword(pw)
-	return true
+	return FromPassword(pw), nil
 }
 
-// TODO clean this up somehow
 func (a *Asker) Ask() bool {
-	defer func() {
-		a.count++
-	}()
-	switch a.cmdstr {
-	case AskReal:
-		switch a.count {
-		case 0:		// first time, return default
-			a.kek = Default
-			return true
-		case 1:		// second time, say that one is needed
-			return a.realAsk(noteNeedsPassword)
-		}
-		// all other times, note password is wrong
-		return a.realAsk(notePasswordWrong)
-	case AskOnce:
-		// only ask once, then return no more
-		// note not needed since we explicitly asked
-		if a.count != 0 {
-			return false
-		}
-		return a.realAsk("")
-	case AskOnly:
-		if a.count == 0 {
-			return a.realAsk("")
-		}
-		return a.realAsk(notePasswordWrong)
-	case AskDefault:
-		if a.count != 0 {
-			return false
-		}
-		a.kek = Default
-		return true
-	}
-	// otherwise treat as a hex string
-	if a.count != 0 {
+	if a.err != nil {
 		return false
 	}
-	a.kek, a.err = hex.DecodeString(a.cmdstr)
-	return a.err == nil
+	if len(a.fns) == 0 {
+		return false
+	}
+	kek, repeat, err := a.fns[0]()
+	a.kek = kek
+	a.err = err
+	if a.err != nil {
+		return false
+	}
+	if !repeat {		// no more from this one, advance to the next one
+		a.fns = a.fns[1:]
+	}
+	return true
 }
 
 func (a *Asker) KEK() []byte {

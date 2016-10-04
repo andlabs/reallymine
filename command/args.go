@@ -173,7 +173,10 @@ func (argKEKType) argtype() reflect.Type {
 }
 
 func (argKEKType) prepare(arg string) (out *argout, err error) {
-	asker := kek.NewAsker(arg)
+	asker, err := kek.NewAsker(arg)
+	if err != nil {
+		return nil, err
+	}
 	out = new(argout)
 	out.obj = reflect.ValueOf(asker)
 	out.deferfunc = func() {}

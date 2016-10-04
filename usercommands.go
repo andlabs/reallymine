@@ -19,7 +19,11 @@ func runUntilDEK(d *disk.Disk, out io.Writer) (dec *Decrypter, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = dec.ExtractDEK(kek.NewAsker(kek.AskReal))
+	asker, err := kek.NewAsker(kek.AskReal)
+	if err != nil {
+		return nil, err
+	}
+	err = dec.ExtractDEK(asker)
 	if err != nil {
 		return nil, err
 	}
