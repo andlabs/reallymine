@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"io"
+	"bufio"
 	"io/ioutil"
 	"reflect"
 	"encoding/hex"
@@ -147,9 +148,12 @@ func (argOutImageType) prepare(arg string) (out *argout, err error) {
 	if err != nil {
 		return nil, err
 	}
+	// Use 10MB write buffer (should be configurable)
+	bufw := bufio.NewWriterSize(f,10485760)
 	out = new(argout)
-	out.obj = reflect.ValueOf(f)
+	out.obj = reflect.ValueOf(bufw)
 	out.deferfunc = func() {
+		bufw.Flush()
 		f.Close()
 	}
 	return out, nil
