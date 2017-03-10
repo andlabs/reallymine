@@ -2,7 +2,7 @@
 
 `reallymine` is a program that decrypts the encrypted hard drives of Western Digital MyBook and MyPassport external hard drives (and some rebranded derivatives).
 
-Currently, it can only decrypt JMicron, Initio, and Symwave bridge chip-based devices tht use AES-256-ECB encryption. I'd love to expand this to cover PLX/Oxford Semiconductor bridge chips and the other known encryption modes, but I need your help; see below.
+Currently, it can only decrypt JMicron, Initio, and Symwave bridge chip-based devices that use AES-256-ECB encryption. I'd love to expand this to cover PLX/Oxford Semiconductor bridge chips and the other known encryption modes, but I need your help; see below.
 
 The program is command-based, with two main commands (one to get the decryption key and one to decrypt the drive automatically) and several helper commands that will facilitate research in expanding reallymine. The general usage is thus
 
