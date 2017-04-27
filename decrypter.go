@@ -145,6 +145,7 @@ func (d *Decrypter) decryptInLoop(errChan chan<- error) {
 // It stops when d.blocksOut is closed, which is done by
 // d.DecryptDisk() itself below.
 // TODO report progress in this goroutine
+// TODO write a test suite for this
 func (d *Decrypter) decryptOutLoop(errChan chan<- error) {
 	for bo := range d.blocksOut {
 		b := *(bo.block)
