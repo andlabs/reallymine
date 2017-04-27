@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"crypto/aes"
+	"sync"
 
 	"github.com/andlabs/reallymine/disk"
 	"github.com/andlabs/reallymine/bridge"
@@ -100,19 +101,34 @@ func (d *Decrypter) DecryptDisk() error {
 	if len(steps) == 0 {
 		return fmt.Errorf("** The %s bridge's decryption scheme is not yet known. Please contact andlabs to help contribute it to reallymine.", d.Bridge.Name())
 	}
-	dl := decryptloop.New(steps, cipher, d.Out)
+
+	blockPool := &sync.Pool{
+		New:		func() interface{} {
+			return make([]byte, disk.SectorSize * NumSectorsAtATime)
+		},
+	}
+
+	type blockIO struct {
+		b	[]byte
+		pos	int64
+	}
+	blocksIn := make(chan blockIO)
+	blocksOut := make(chan blockIO)
+
 	// TODO refine or allow custom buffer sizes?
 	iter, err := d.Disk.Iter(0, NumSectorsAtATime)
 	if err != nil {
 		return err
 	}
-	for iter.Next() {
-		// TODO report progress in MB
-		s := iter.Sectors()
-		_, err = dl.Write(s)
-		if err != nil {
-			return err
+	go func() {
+		for iter.Next() {
+			s := iter.Sectors()
+			_, err = dl.Write(s)
+			if err != nil {
+				return err
+			}
 		}
-	}
+	}()
+
 	return iter.Err()
 }
