@@ -56,7 +56,6 @@ var dumplast = &command.Command{
 func cDecryptKeySector(d *disk.Disk, out io.Writer, a *kek.Asker) error {
 	dec := &Decrypter{
 		Disk:		d,
-		Out:		out,
 	}
 	err := dec.FindKeySector()
 	if err != nil {

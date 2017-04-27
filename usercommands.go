@@ -10,7 +10,7 @@ import (
 	"github.com/andlabs/reallymine/kek"
 )
 
-func runUntilDEK(d *disk.Disk, out io.Writer) (dec *Decrypter, err error) {
+func runUntilDEK(d *disk.Disk, out io.WriterAt) (dec *Decrypter, err error) {
 	dec = &Decrypter{
 		Disk:		d,
 		Out:		out,
@@ -50,7 +50,7 @@ var getdek = &command.Command{
 	Do:			cGetDEK,
 }
 
-func cDecrypt(d *disk.Disk, out io.Writer) error {
+func cDecrypt(d *disk.Disk, out io.WriterAt) error {
 	dec, err := runUntilDEK(d, out)
 	if err != nil {
 		return err

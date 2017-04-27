@@ -18,7 +18,7 @@ import (
 // TODO rename this type
 type Decrypter struct {
 	Disk		*disk.Disk
-	Out		io.WriteSeeker
+	Out		io.WriterAt
 
 	EncryptedKeySector		[]byte
 	KeySectorPos			int64
@@ -147,14 +147,9 @@ func (d *Decrypter) decryptInLoop(errChan chan<- error) {
 // TODO report progress in this goroutine
 func (d *Decrypter) decryptOutLoop(errChan chan<- error) {
 	for bo := range d.blocksOut {
-		_, err := d.Out.Seek(bo.pos, io.SeekStart)
-		if err != nil {
-			errChan <- err
-			return
-		}
 		b := *(bo.block)
 		b = b[:bo.size]
-		_, err = d.Out.Write(b)
+		_, err := d.Out.WriteAt(b, bo.pos)
 		if err != nil {
 			errChan <- err
 			return
