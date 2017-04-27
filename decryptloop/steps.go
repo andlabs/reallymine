@@ -167,6 +167,13 @@ func (s StepList) runBlock(c cipher.Block, b []byte) {
 	}
 }
 
+// TODO clean all this up
+// for reallymine to use directly
+// TODO error out if b is not a multiple of the block size somehow?
+func (s StepList) DecryptBlock(c cipher.Block, b []byte) {
+	s.runBlock(c, b)
+}
+
 // for reallymine to use directly
 
 // TODO merge with package command - can't use command directly since that imports us
