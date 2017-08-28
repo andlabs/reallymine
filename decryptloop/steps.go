@@ -170,8 +170,12 @@ func (s StepList) runBlock(c cipher.Block, b []byte) {
 // TODO clean all this up
 // for reallymine to use directly
 // TODO error out if b is not a multiple of the block size somehow?
+// TODO explain why the for loop is needed
 func (s StepList) DecryptBlock(c cipher.Block, b []byte) {
-	s.runBlock(c, b)
+	size := c.BlockSize()
+	for i := 0; i < len(b); i += size {
+		s.runBlock(c, b[i:i + size])
+	}
 }
 
 // for reallymine to use directly
