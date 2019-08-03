@@ -6,7 +6,7 @@ import (
 	"os"
 	"encoding/hex"
 
-	"github.com/hashicorp/vault/helper/password"
+	"github.com/hashicorp/vault/sdk/helper/password"
 )
 
 type Asker struct {
