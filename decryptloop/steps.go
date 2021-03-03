@@ -2,23 +2,23 @@
 package decryptloop
 
 import (
-	"fmt"
 	"crypto/cipher"
+	"fmt"
 	"strings"
 
-	"github.com/andlabs/reallymine/byteops"
+	"github.com/undeadbanegithub/reallymine/byteops"
 )
 
 // This complicated structure allows us to define a fixed set of Step objects and disallow nil at the same time, reducing the number of things that need validation.
 
 type stepiface interface {
-	name()					string
-	desc()					string
+	name() string
+	desc() string
 	do(c cipher.Block, b []byte)
 }
 
 type step struct {
-	s	stepiface
+	s stepiface
 }
 
 type Step step

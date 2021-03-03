@@ -18,7 +18,7 @@ Stable versions of reallymine are available from the Releases page on GitHub.
 reallymine is written in Go. If you want to build it from source, install Go and then simply run
 
 ```
-$ go get github.com/andlabs/reallymine
+$ go get github.com/undeadbanegithub/reallymine
 ```
 
 This will get reallymine and its dependencies and place the resultant binary in your `$GOPATH/bin`.

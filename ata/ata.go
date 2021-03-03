@@ -11,7 +11,7 @@ func DrivespecUsage() string {
 }
 
 type ATA struct {
-	s	*sysATA
+	s *sysATA
 }
 
 func Open(drivespec string) (*ATA, error) {
@@ -23,30 +23,30 @@ func (a *ATA) Close() error {
 }
 
 type Command28 struct {
-	Features		byte
-	Count		byte
-	LBALow		byte
-	LBAMid		byte
-	LBAHigh		byte
-	Device		byte
-	Command	byte
+	Features byte
+	Count    byte
+	LBALow   byte
+	LBAMid   byte
+	LBAHigh  byte
+	Device   byte
+	Command  byte
 }
 
 type Response28 struct {
-	Error		byte
-	Count	byte
-	LBALow	byte
-	LBAMid	byte
-	LBAHigh	byte
-	Device	byte
-	Status	byte
+	Error   byte
+	Count   byte
+	LBALow  byte
+	LBAMid  byte
+	LBAHigh byte
+	Device  byte
+	Status  byte
 }
 
 func (a *ATA) Read28(c *Command28, b []byte) (resp *Response28, n int, err error) {
 	return a.s.Read28(c, b)
 }
 
-func (a *ATA) Write28(c *Command28, b []byte) (resp *Response28, err eror) {
+func (a *ATA) Write28(c *Command28, b []byte) (resp *Response28, err error) {
 	return a.s.Write28(c, b)
 }
 

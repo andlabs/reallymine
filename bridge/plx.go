@@ -3,11 +3,11 @@ package bridge
 
 import (
 	"bytes"
-	"encoding/binary"
 	"crypto/aes"
+	"encoding/binary"
 
-	"github.com/andlabs/reallymine/byteops"
-	"github.com/andlabs/reallymine/decryptloop"
+	"github.com/undeadbanegithub/reallymine/byteops"
+	"github.com/undeadbanegithub/reallymine/decryptloop"
 )
 
 type PLX struct{}
@@ -28,13 +28,13 @@ func (PLX) NeedsKEK() bool {
 }
 
 type PLXKeySector struct {
-	raw		[]byte
-	d		struct {
-		Magic		[4]byte
-		Unknown		[0x10]byte
-		EncryptedDEK	[32]byte
+	raw []byte
+	d   struct {
+		Magic        [4]byte
+		Unknown      [0x10]byte
+		EncryptedDEK [32]byte
 	}
-	dek		[]byte
+	dek []byte
 }
 
 // MAJOR TODO

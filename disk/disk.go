@@ -3,16 +3,16 @@ package disk
 
 import (
 	"fmt"
-	"os"
 	"io"
+	"os"
 )
 
 const SectorSize = 512
 
 // Disk is currently not safe for concurrent use.
 type Disk struct {
-	r		*io.SectionReader
-	close	func() error
+	r     *io.SectionReader
+	close func() error
 }
 
 func Open(filename string, size int64) (d *Disk, err error) {
@@ -33,12 +33,12 @@ func Open(filename string, size int64) (d *Disk, err error) {
 	} else if size > realsize {
 		return errfail(fmt.Errorf("requested disk size larger than actual disk size"))
 	}
-	if size % SectorSize != 0 {
+	if size%SectorSize != 0 {
 		return errfail(fmt.Errorf("disk size is not a multiple of the sector size; this is likely not a disk"))
 	}
 	return &Disk{
-		r:		io.NewSectionReader(f, 0, size),
-		close:	f.Close,
+		r:     io.NewSectionReader(f, 0, size),
+		close: f.Close,
 	}, nil
 }
 
@@ -51,15 +51,15 @@ func (d *Disk) Size() int64 {
 }
 
 func (d *Disk) ReadSectorsAt(sectors []byte, pos int64) (int, error) {
-	if len(sectors) % SectorSize != 0 {
-		return 0, io.ErrShortBuffer		// TODO better error?
+	if len(sectors)%SectorSize != 0 {
+		return 0, io.ErrShortBuffer // TODO better error?
 	}
 	n, err := d.r.ReadAt(sectors, pos)
 	if err == io.EOF {
-		if n == 0 {		// this is truly the end of the disk
+		if n == 0 { // this is truly the end of the disk
 			return 0, io.EOF
 		}
-		if n % SectorSize != 0 {
+		if n%SectorSize != 0 {
 			return n, io.ErrUnexpectedEOF
 		}
 		// Allow a short read at the end of the disk; the next call
@@ -78,21 +78,21 @@ func (d *Disk) ReadSectorsAt(sectors []byte, pos int64) (int, error) {
 }
 
 type SectorIter struct {
-	d		*Disk
-	sectors	[]byte
-	pos		int64
-	incr		int		// in units of len(sectors)
-	eof		bool
-	err		error
+	d       *Disk
+	sectors []byte
+	pos     int64
+	incr    int // in units of len(sectors)
+	eof     bool
+	err     error
 }
 
 func (d *Disk) mkiter(startAt int64, countPer int, reverse bool) (*SectorIter, error) {
-	if startAt % SectorSize != 0 {
+	if startAt%SectorSize != 0 {
 		return nil, fmt.Errorf("startAt must be sector-aligned")
 	}
 	s := new(SectorIter)
 	s.d = d
-	s.sectors = make([]byte, countPer * SectorSize)
+	s.sectors = make([]byte, countPer*SectorSize)
 	if reverse {
 		// The first call to Next() will push s.pos to the last block.
 		s.pos = startAt
@@ -128,7 +128,7 @@ func (s *SectorIter) Next() bool {
 		s.err = err
 		return false
 	}
-	s.sectors = s.sectors[:n]		// trim short last read
+	s.sectors = s.sectors[:n] // trim short last read
 	return true
 }
 

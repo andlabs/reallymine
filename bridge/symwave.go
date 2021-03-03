@@ -5,9 +5,9 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/andlabs/reallymine/byteops"
-	"github.com/andlabs/reallymine/decryptloop"
 	"github.com/mendsley/gojwe"
+	"github.com/undeadbanegithub/reallymine/byteops"
+	"github.com/undeadbanegithub/reallymine/decryptloop"
 )
 
 type Symwave struct{}
@@ -29,16 +29,16 @@ func (Symwave) NeedsKEK() bool {
 }
 
 type SymwaveKeySector struct {
-	raw		[]byte
+	raw []byte
 
 	// The DEK is stored as two separately-wrapped halves.
 	// The KEK is only stored as one.
-	d		struct {
-		Magic		[4]byte
-		Unknown		[0xC]byte
-		WrappedDEK1	[0x28]byte
-		WrappedDEK2	[0x28]byte
-		WrappedKEK	[0x28]byte
+	d struct {
+		Magic       [4]byte
+		Unknown     [0xC]byte
+		WrappedDEK1 [0x28]byte
+		WrappedDEK2 [0x28]byte
+		WrappedKEK  [0x28]byte
 	}
 }
 
@@ -56,7 +56,7 @@ var symwaveKEKWrappingKey = []byte{
 
 func (Symwave) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) {
 	return &SymwaveKeySector{
-		raw:		byteops.DupBytes(keySector),
+		raw: byteops.DupBytes(keySector),
 	}, nil
 }
 
@@ -95,7 +95,7 @@ func (ks *SymwaveKeySector) DEK() (dek []byte, err error) {
 	}
 
 	dek = byteops.DupBytes(dek1)
-	_ = dek2		// doesn't seem to be used
+	_ = dek2 // doesn't seem to be used
 	// And finally we just need one last endian correction...
 	byteops.SwapLongs(dek)
 	return dek, nil

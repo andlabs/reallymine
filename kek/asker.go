@@ -2,9 +2,9 @@
 package kek
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
-	"encoding/hex"
 
 	"github.com/hashicorp/vault/sdk/helper/password"
 )
@@ -27,14 +27,14 @@ func askUser(note string, repeat bool) askfn {
 }
 
 type Asker struct {
-	fns		[]askfn
-	kek		[]byte
-	err		error
+	fns []askfn
+	kek []byte
+	err error
 }
 
 func mkasker(fns ...askfn) (*Asker, error) {
 	return &Asker{
-		fns:		fns,
+		fns: fns,
 	}, nil
 }
 
@@ -63,9 +63,9 @@ func NewAsker(cmdstr string) (a *Asker, err error) {
 }
 
 const (
-	AskReal = "-real"
-	AskOnce = "-askonce"
-	AskOnly = "-onlyask"
+	AskReal    = "-real"
+	AskOnce    = "-askonce"
+	AskOnly    = "-onlyask"
 	AskDefault = "-default"
 )
 
@@ -81,8 +81,8 @@ func realAskUser(note string) (kek []byte, err error) {
 	}
 	fmt.Print("Enter WD password: ")
 	pw, err := password.Read(os.Stdin)
-	fmt.Println()		// because password.Read() doesn't
-	if err != nil {		// including cancelled
+	fmt.Println()   // because password.Read() doesn't
+	if err != nil { // including cancelled
 		return nil, err
 	}
 	return FromPassword(pw), nil
@@ -101,7 +101,7 @@ func (a *Asker) Ask() bool {
 	if a.err != nil {
 		return false
 	}
-	if !repeat {		// no more from this one, advance to the next one
+	if !repeat { // no more from this one, advance to the next one
 		a.fns = a.fns[1:]
 	}
 	return true

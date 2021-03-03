@@ -49,7 +49,7 @@ func wrapL2(s string) (wrapped []string) {
 			}
 			wrappedLine = candidate
 		}
-		if wrappedLine != "" {		// add the last line
+		if wrappedLine != "" { // add the last line
 			wrapped = append(wrapped, wrappedLine)
 		}
 	}
@@ -58,5 +58,5 @@ func wrapL2(s string) (wrapped []string) {
 
 func ToFlagUsage(s string) string {
 	wrapped := wrapL2(s)
-	return strings.Join(wrapped, "\n" + prefixL2)
+	return strings.Join(wrapped, "\n"+prefixL2)
 }
