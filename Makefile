@@ -1,7 +1,12 @@
 PROJECT ?= $(notdir $(patsubst %/,%,$(CURDIR)))
 PACKAGE ?= github.com/undeadbanegithub/$(PROJECT)
 
-GO_SOURCES = $(shell find . -type f \( -iname '*.go' \) -not \( -path "./vendor/*" -path ".*" \))
+GO_SOURCES = $(shell find . -type f \( -iname '*.go' \) \
+	-not \( -path "./vendor/*" -path ".*" \) \
+	-not \( -path "./_notes/*" -path ".*" \) \
+	-not \( -path "./_pre/*" -path ".*" \) \
+	-not \( -path "./_sectors/*" -path ".*" \) \
+	-not \( -path "./_try/*" -path ".*" \))
 
 export GO111MODULE = on
 
