@@ -2,6 +2,7 @@
 package command
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"io"
@@ -9,9 +10,9 @@ import (
 	"reflect"
 	"encoding/hex"
 
-	"github.com/andlabs/reallymine/disk"
-	"github.com/andlabs/reallymine/kek"
-	"github.com/andlabs/reallymine/decryptloop"
+	"github.com/undeadbanegithub/reallymine/disk"
+	"github.com/undeadbanegithub/reallymine/kek"
+	"github.com/undeadbanegithub/reallymine/decryptloop"
 )
 
 // DiskSize is passed as the size parameter to disk.Open() when an
@@ -147,9 +148,14 @@ func (argOutImageType) prepare(arg string) (out *argout, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Use 10MB write buffer (should be configurable)
+	writer := bufio.NewWriterSize(f,10*1024*1024)
+
 	out = new(argout)
-	out.obj = reflect.ValueOf(f)
+	out.obj = reflect.ValueOf(writer)
 	out.deferfunc = func() {
+		writer.Flush()
 		f.Close()
 	}
 	return out, nil
