@@ -2,14 +2,14 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"flag"
 	"strings"
 
-	"github.com/andlabs/reallymine/command"
-	"github.com/andlabs/reallymine/disk"
-	"github.com/andlabs/reallymine/decryptloop"
+	"github.com/undeadbanegithub/reallymine/command"
+	"github.com/undeadbanegithub/reallymine/decryptloop"
+	"github.com/undeadbanegithub/reallymine/disk"
 )
 
 func errf(format string, args ...interface{}) {

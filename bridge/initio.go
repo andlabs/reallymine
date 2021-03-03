@@ -6,8 +6,8 @@ import (
 	"crypto/aes"
 	"encoding/binary"
 
-	"github.com/andlabs/reallymine/byteops"
-	"github.com/andlabs/reallymine/decryptloop"
+	"github.com/undeadbanegithub/reallymine/byteops"
+	"github.com/undeadbanegithub/reallymine/decryptloop"
 )
 
 type Initio struct{}
