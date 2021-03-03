@@ -28,16 +28,16 @@ func (JMicron) NeedsKEK() bool {
 }
 
 type JMicronKeySector struct {
-	raw	[]byte
+	raw []byte
 
 	// The names Key3EE2, Key3EF2, and Key3F02 are from the
 	// paper. But I recognize the hex numbers as addresses in the
 	// JMicron chip's RAM. These RAM addresses followed me
 	// around throughout disassembly, and I *knew* they were
 	// suspicious, damnit!
-	d	struct {		// d for "DEK block"
+	d struct { // d for "DEK block"
 		Magic     [4]byte // 'DEK1'
-		Checksum  uint16		// TODO check this too?
+		Checksum  uint16  // TODO check this too?
 		Unknown   uint16
 		Random1   uint32
 		Key3EE2   [16]byte // This is the first half of the AES-256 key.
@@ -69,7 +69,7 @@ func (JMicron) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error)
 	}
 
 	return &JMicronKeySector{
-		raw:		keySector,
+		raw: keySector,
 	}, nil
 }
 
