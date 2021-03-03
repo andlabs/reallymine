@@ -3,16 +3,16 @@ package command
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
-	"os"
 	"io"
 	"io/ioutil"
+	"os"
 	"reflect"
-	"encoding/hex"
 
+	"github.com/undeadbanegithub/reallymine/decryptloop"
 	"github.com/undeadbanegithub/reallymine/disk"
 	"github.com/undeadbanegithub/reallymine/kek"
-	"github.com/undeadbanegithub/reallymine/decryptloop"
 )
 
 // DiskSize is passed as the size parameter to disk.Open() when an
@@ -20,8 +20,8 @@ import (
 var DiskSize int64 = -1
 
 type argout struct {
-	obj			reflect.Value
-	deferfunc		func()
+	obj       reflect.Value
+	deferfunc func()
 }
 
 // This complicated structure allows us to define a fixed set of Arg objects and disallow nil at the same time, reducing the number of things that need validation.
@@ -34,7 +34,7 @@ type argiface interface {
 }
 
 type arg struct {
-	a	argiface
+	a argiface
 }
 
 type Arg arg
@@ -50,13 +50,13 @@ func addarg(a argiface) Arg {
 }
 
 var (
-	typeDisk = reflect.TypeOf((*disk.Disk)(nil))
-	typeWriter = reflect.TypeOf((*io.Writer)(nil)).Elem()
-	typeFile = reflect.TypeOf((*os.File)(nil))
-	typeAsker = reflect.TypeOf((*kek.Asker)(nil))
+	typeDisk      = reflect.TypeOf((*disk.Disk)(nil))
+	typeWriter    = reflect.TypeOf((*io.Writer)(nil)).Elem()
+	typeFile      = reflect.TypeOf((*os.File)(nil))
+	typeAsker     = reflect.TypeOf((*kek.Asker)(nil))
 	typeByteSlice = reflect.TypeOf([]byte(nil))
-	typeReader = reflect.TypeOf((*io.Reader)(nil)).Elem()
-	typeStepList = reflect.TypeOf(decryptloop.StepList(nil))
+	typeReader    = reflect.TypeOf((*io.Reader)(nil)).Elem()
+	typeStepList  = reflect.TypeOf(decryptloop.StepList(nil))
 )
 
 type argDiskType struct{}
@@ -144,13 +144,13 @@ func (argOutImageType) argtype() reflect.Type {
 }
 
 func (argOutImageType) prepare(arg string) (out *argout, err error) {
-	f, err := os.OpenFile(arg, os.O_WRONLY | os.O_CREATE | os.O_EXCL, 0644)
+	f, err := os.OpenFile(arg, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		return nil, err
 	}
 
 	// Use 10MB write buffer (should be configurable)
-	writer := bufio.NewWriterSize(f,10*1024*1024)
+	writer := bufio.NewWriterSize(f, 10*1024*1024)
 
 	out = new(argout)
 	out.obj = reflect.ValueOf(writer)
