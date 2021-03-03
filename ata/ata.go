@@ -46,7 +46,7 @@ func (a *ATA) Read28(c *Command28, b []byte) (resp *Response28, n int, err error
 	return a.s.Read28(c, b)
 }
 
-func (a *ATA) Write28(c *Command28, b []byte) (resp *Response28, err eror) {
+func (a *ATA) Write28(c *Command28, b []byte) (resp *Response28, err error) {
 	return a.s.Write28(c, b)
 }
 
