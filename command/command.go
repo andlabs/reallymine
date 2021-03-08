@@ -93,7 +93,7 @@ func (c *Command) Invoke(args []string) error {
 		if err != nil {
 			return err
 		}
-		defer out.deferfunc()
+		defer out.deferFunc()
 		fa[i] = out.obj
 	}
 	out := fv.Call(fa)

@@ -1,4 +1,4 @@
-// 22 october 2015
+// 8 March 2021
 package main
 
 import (
@@ -44,8 +44,30 @@ func init() {
 }
 
 func init() {
-	flag.Int64Var(&command.DiskSize, "disk-size", -1,
-		command.ToFlagUsage(fmt.Sprintf("Overrides the size of the disk to use, allowing you to pretend the disk is smaller than it is. This value must be less than or equal to the disk's actual size, and must be a multiple of the sector size (%d bytes). If the size is -1, the disk's actual size is used.", disk.SectorSize)))
+	flag.Int64Var(
+		&command.DiskSize,
+		"disk-size",
+		-1,
+		command.ToFlagUsage(
+			fmt.Sprintf(
+				"Overrides the size of the disk to use, allowing you to pretend the disk is smaller than it "+
+					"is. This value must be less than or equal to the disk's actual size, and must be a multiple of "+
+					"the sector size (%d bytes). If the size is -1, the disk's actual size is used.",
+				disk.SectorSize,
+			),
+		),
+	)
+	flag.IntVar(
+		&command.WriteBufSize,
+		"write-buf-size",
+		10*1024*1024,
+		command.ToFlagUsage(
+			"Overrides the size of write buffer to be used during the encryption. The bigger the buffer, the "+
+				"bigger chunks would be first decrypted into memory and then written to disk. You might want to set "+
+				"the value higher, if the destination device is slow, to minimize the number of writes, else it "+
+				"would not make much of a difference.",
+		),
+	)
 }
 
 func usage() {

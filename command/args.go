@@ -1,4 +1,4 @@
-// 22 october 2015
+// 08 March 2021
 package command
 
 import (
@@ -19,22 +19,26 @@ import (
 // argument of type ArgDisk is processed.
 var DiskSize int64 = -1
 
-type argout struct {
+// Size of the write buffer, that would accumulate the data before writing it onto the destination.
+// 10MB is a reasonable default.
+var WriteBufSize = 10 * 1024 * 1024
+
+type argOut struct {
 	obj       reflect.Value
-	deferfunc func()
+	deferFunc func()
 }
 
 // This complicated structure allows us to define a fixed set of Arg objects and disallow nil at the same time, reducing the number of things that need validation.
 
-type argiface interface {
+type argInterface interface {
 	name() string
 	desc() string
-	argtype() reflect.Type
-	prepare(arg string) (out *argout, err error)
+	argType() reflect.Type
+	prepare(arg string) (out *argOut, err error)
 }
 
 type arg struct {
-	a argiface
+	a argInterface
 }
 
 type Arg arg
@@ -43,7 +47,7 @@ type Arg arg
 var validArgs []Arg
 
 // TODO complain if any arguments have duplicated names
-func addarg(a argiface) Arg {
+func addarg(a argInterface) Arg {
 	aa := Arg{a}
 	validArgs = append(validArgs, aa)
 	return aa
@@ -69,18 +73,18 @@ func (argDiskType) desc() string {
 	return fmt.Sprintf("The filename of a disk device or disk image. The file must exist and must have a size which is a multiple of the sector size (%d bytes).", disk.SectorSize)
 }
 
-func (argDiskType) argtype() reflect.Type {
+func (argDiskType) argType() reflect.Type {
 	return typeDisk
 }
 
-func (argDiskType) prepare(arg string) (out *argout, err error) {
+func (argDiskType) prepare(arg string) (out *argOut, err error) {
 	d, err := disk.Open(arg, DiskSize)
 	if err != nil {
 		return nil, err
 	}
-	out = new(argout)
+	out = new(argOut)
 	out.obj = reflect.ValueOf(d)
-	out.deferfunc = func() {
+	out.deferFunc = func() {
 		d.Close()
 	}
 	return out, nil
@@ -99,11 +103,11 @@ func (argOutFileType) desc() string {
 	return "Either the name of a file to dump the raw data to or - to perform a hexdump on stdout."
 }
 
-func (argOutFileType) argtype() reflect.Type {
+func (argOutFileType) argType() reflect.Type {
 	return typeWriter
 }
 
-func (argOutFileType) prepare(arg string) (out *argout, err error) {
+func (argOutFileType) prepare(arg string) (out *argOut, err error) {
 	var of io.WriteCloser
 
 	if arg == "-" {
@@ -115,9 +119,9 @@ func (argOutFileType) prepare(arg string) (out *argout, err error) {
 		}
 		of = f
 	}
-	out = new(argout)
+	out = new(argOut)
 	out.obj = reflect.ValueOf(of)
-	out.deferfunc = func() {
+	out.deferFunc = func() {
 		// TODO catch the error in the case of stdout?
 		// TODO we need to worry about multiplexing then
 		of.Close()
@@ -139,22 +143,21 @@ func (argOutImageType) desc() string {
 }
 
 // TODO use typeFile?
-func (argOutImageType) argtype() reflect.Type {
+func (argOutImageType) argType() reflect.Type {
 	return typeWriter
 }
 
-func (argOutImageType) prepare(arg string) (out *argout, err error) {
+func (argOutImageType) prepare(arg string) (out *argOut, err error) {
 	f, err := os.OpenFile(arg, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		return nil, err
 	}
 
-	// Use 10MB write buffer (should be configurable)
-	writer := bufio.NewWriterSize(f, 10*1024*1024)
+	writer := bufio.NewWriterSize(f, WriteBufSize)
 
-	out = new(argout)
+	out = new(argOut)
 	out.obj = reflect.ValueOf(writer)
-	out.deferfunc = func() {
+	out.deferFunc = func() {
 		writer.Flush()
 		f.Close()
 	}
@@ -174,18 +177,18 @@ func (argKEKType) desc() string {
 	return kek.AskerDescription
 }
 
-func (argKEKType) argtype() reflect.Type {
+func (argKEKType) argType() reflect.Type {
 	return typeAsker
 }
 
-func (argKEKType) prepare(arg string) (out *argout, err error) {
+func (argKEKType) prepare(arg string) (out *argOut, err error) {
 	asker, err := kek.NewAsker(arg)
 	if err != nil {
 		return nil, err
 	}
-	out = new(argout)
+	out = new(argOut)
 	out.obj = reflect.ValueOf(asker)
-	out.deferfunc = func() {}
+	out.deferFunc = func() {}
 	return out, nil
 }
 
@@ -202,18 +205,18 @@ func (argDEKType) desc() string {
 	return "A hexadecimal string to use as the DEK."
 }
 
-func (argDEKType) argtype() reflect.Type {
+func (argDEKType) argType() reflect.Type {
 	return typeByteSlice
 }
 
-func (argDEKType) prepare(arg string) (out *argout, err error) {
+func (argDEKType) prepare(arg string) (out *argOut, err error) {
 	b, err := hex.DecodeString(arg)
 	if err != nil {
 		return nil, err
 	}
-	out = new(argout)
+	out = new(argOut)
 	out.obj = reflect.ValueOf(b)
-	out.deferfunc = func() {}
+	out.deferFunc = func() {}
 	return out, nil
 }
 
@@ -230,11 +233,11 @@ func (argInFileType) desc() string {
 	return "Either the name of a file to read from or - to read from stdin."
 }
 
-func (argInFileType) argtype() reflect.Type {
+func (argInFileType) argType() reflect.Type {
 	return typeReader
 }
 
-func (argInFileType) prepare(arg string) (out *argout, err error) {
+func (argInFileType) prepare(arg string) (out *argOut, err error) {
 	var inf io.ReadCloser
 
 	if arg == "-" {
@@ -247,9 +250,9 @@ func (argInFileType) prepare(arg string) (out *argout, err error) {
 		}
 		inf = f
 	}
-	out = new(argout)
+	out = new(argOut)
 	out.obj = reflect.ValueOf(inf)
-	out.deferfunc = func() {
+	out.deferFunc = func() {
 		inf.Close()
 	}
 	return out, nil
@@ -268,18 +271,18 @@ func (argDecryptionStepsType) desc() string {
 	return "A space-delimited list of decryption steps. Must not be empty. Because this is space-delimited, wrap this argument in quotes to have your shell treat the list as one argument."
 }
 
-func (argDecryptionStepsType) argtype() reflect.Type {
+func (argDecryptionStepsType) argType() reflect.Type {
 	return typeStepList
 }
 
-func (argDecryptionStepsType) prepare(arg string) (out *argout, err error) {
+func (argDecryptionStepsType) prepare(arg string) (out *argOut, err error) {
 	steps, err := decryptloop.StepListFromString(arg)
 	if err != nil {
 		return nil, err
 	}
-	out = new(argout)
+	out = new(argOut)
 	out.obj = reflect.ValueOf(steps)
-	out.deferfunc = func() {}
+	out.deferFunc = func() {}
 	return out, nil
 }
 
@@ -289,11 +292,11 @@ var ArgDecryptionSteps Arg = argDecryptionSteps
 // for command.go
 
 func (a Arg) argtype() reflect.Type {
-	return a.a.argtype()
+	return a.a.argType()
 }
 
-// TODO rename argout and fields to something more sane for command.go
-func (a Arg) prepare(arg string) (*argout, error) {
+// TODO rename argOut and fields to something more sane for command.go
+func (a Arg) prepare(arg string) (*argOut, error) {
 	return a.a.prepare(arg)
 }
 

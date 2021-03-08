@@ -10,7 +10,7 @@ GO_SOURCES = $(shell find . -type f \( -iname '*.go' \) \
 
 export GO111MODULE = on
 
-fmt: $(GO_SOURCES)	## format go sources
+fmt: $(GO_SOURCES)	# format go sources
 	gofmt -w -s -l $^
 
 .build/$(PROJECT).%: $(GO_SOURCES) go.mod
