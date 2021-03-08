@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/undeadbanegithub/reallymine/byteops"
+	"github.com/andlabs/reallymine/byteops"
 )
 
 // This complicated structure allows us to define a fixed set of Step objects and disallow nil at the same time, reducing the number of things that need validation.

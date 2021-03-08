@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/undeadbanegithub/reallymine/command"
-	"github.com/undeadbanegithub/reallymine/decryptloop"
-	"github.com/undeadbanegithub/reallymine/disk"
+	"github.com/andlabs/reallymine/command"
+	"github.com/andlabs/reallymine/decryptloop"
+	"github.com/andlabs/reallymine/disk"
 )
 
 func errf(format string, args ...interface{}) {

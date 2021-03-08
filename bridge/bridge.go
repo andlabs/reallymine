@@ -4,7 +4,7 @@ package bridge
 import (
 	"fmt"
 
-	"github.com/undeadbanegithub/reallymine/decryptloop"
+	"github.com/andlabs/reallymine/decryptloop"
 )
 
 var ErrWrongKEK = fmt.Errorf("wrong KEK")

@@ -5,9 +5,9 @@ import (
 	"bytes"
 	"encoding/binary"
 
+	"github.com/andlabs/reallymine/byteops"
+	"github.com/andlabs/reallymine/decryptloop"
 	"github.com/mendsley/gojwe"
-	"github.com/undeadbanegithub/reallymine/byteops"
-	"github.com/undeadbanegithub/reallymine/decryptloop"
 )
 
 type Symwave struct{}

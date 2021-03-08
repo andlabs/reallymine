@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/undeadbanegithub/reallymine/bridge"
-	"github.com/undeadbanegithub/reallymine/command"
-	"github.com/undeadbanegithub/reallymine/decryptloop"
-	"github.com/undeadbanegithub/reallymine/disk"
-	"github.com/undeadbanegithub/reallymine/kek"
+	"github.com/andlabs/reallymine/bridge"
+	"github.com/andlabs/reallymine/command"
+	"github.com/andlabs/reallymine/decryptloop"
+	"github.com/andlabs/reallymine/disk"
+	"github.com/andlabs/reallymine/kek"
 )
 
 var zeroSector [disk.SectorSize]byte
