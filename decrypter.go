@@ -2,28 +2,28 @@
 package main
 
 import (
+	"crypto/aes"
 	"fmt"
 	"io"
-	"crypto/aes"
 
-	"github.com/andlabs/reallymine/disk"
 	"github.com/andlabs/reallymine/bridge"
-	"github.com/andlabs/reallymine/kek"
 	"github.com/andlabs/reallymine/decryptloop"
+	"github.com/andlabs/reallymine/disk"
+	"github.com/andlabs/reallymine/kek"
 )
 
 // TODO rename this type
 type Decrypter struct {
-	Disk		*disk.Disk
-	Out		io.Writer
+	Disk *disk.Disk
+	Out  io.Writer
 
-	EncryptedKeySector		[]byte
-	KeySectorPos			int64
-	Bridge				bridge.Bridge
+	EncryptedKeySector []byte
+	KeySectorPos       int64
+	Bridge             bridge.Bridge
 
-	KEK			[]byte
-	KeySector		bridge.KeySector
-	DEK			[]byte
+	KEK       []byte
+	KeySector bridge.KeySector
+	DEK       []byte
 }
 
 func (d *Decrypter) FindKeySector() error {

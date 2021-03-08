@@ -2,8 +2,8 @@
 package main
 
 import (
-	"fmt"
 	"encoding/hex"
+	"fmt"
 	"strings"
 
 	"github.com/andlabs/reallymine/bridge"

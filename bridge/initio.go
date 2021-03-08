@@ -28,8 +28,8 @@ func (Initio) NeedsKEK() bool {
 }
 
 type InitioKeySector struct {
-	raw	[]byte
-	d	struct {		// d for "DEK block"
+	raw []byte
+	d   struct { // d for "DEK block"
 		Magic   [4]byte // 27 5D BA 35
 		Unknown [8]byte
 		Key     [32]byte // stored as little-endian longs
@@ -55,7 +55,7 @@ func (Initio) DecryptKeySector(keySector []byte, kek []byte) (KeySector, error) 
 	}
 
 	return &InitioKeySector{
-		raw:		keySector,
+		raw: keySector,
 	}, nil
 }
 

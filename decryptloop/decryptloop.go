@@ -2,24 +2,24 @@
 package decryptloop
 
 import (
-	"io"
 	"crypto/cipher"
+	"io"
 )
 
 type DecryptLoop struct {
-	steps	StepList
-	c		cipher.Block
-	buf		[]byte
-	pos		int
-	out		io.Writer
+	steps StepList
+	c     cipher.Block
+	buf   []byte
+	pos   int
+	out   io.Writer
 }
 
 func New(steps StepList, c cipher.Block, out io.Writer) *DecryptLoop {
 	return &DecryptLoop{
-		steps:	steps,
-		c:		c,
-		buf:		make([]byte, c.BlockSize()),
-		out:		out,
+		steps: steps,
+		c:     c,
+		buf:   make([]byte, c.BlockSize()),
+		out:   out,
 	}
 }
 

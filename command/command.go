@@ -3,15 +3,15 @@ package command
 
 import (
 	"fmt"
-	"strings"
 	"reflect"
+	"strings"
 )
 
 type Command struct {
-	Name		string
-	Args			[]Arg
-	Description	string
-	Do			interface{}
+	Name        string
+	Args        []Arg
+	Description string
+	Do          interface{}
 }
 
 var (
@@ -93,7 +93,7 @@ func (c *Command) Invoke(args []string) error {
 		if err != nil {
 			return err
 		}
-		defer out.deferfunc()
+		defer out.deferFunc()
 		fa[i] = out.obj
 	}
 	out := fv.Call(fa)
@@ -112,7 +112,7 @@ func Validate(commands []*Command) (problems []string) {
 	for _, c := range commands {
 		problems = append(problems, c.validate()...)
 		if seen[c.Name] {
-			problems = append(problems, c.Name + " declared more than once")
+			problems = append(problems, c.Name+" declared more than once")
 		}
 		seen[c.Name] = true
 	}

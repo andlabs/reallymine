@@ -2,9 +2,9 @@
 package ata
 
 import (
-	"regexp"
 	"bytes"
 	"encoding/binary"
+	"regexp"
 
 	"golang.org/x/sys/windows"
 )
@@ -36,7 +36,7 @@ func validDrivespec(drivespec string) bool {
 }
 
 type sysATA struct {
-	handle	windows.Handle
+	handle windows.Handle
 }
 
 func sysOpen(drivespec string) (*ATA, error) {
@@ -50,8 +50,8 @@ func sysOpen(drivespec string) (*ATA, error) {
 	}
 	a := new(sysATA)
 	a.handle, err = windows.CreateFile(wdrivespec,
-		windows.GENERIC_READ | windows.GENERIC_WRITE,
-		windows.FILE_SHARE_READ | windows.FILE_SHARE_WRITE,
+		windows.GENERIC_READ|windows.GENERIC_WRITE,
+		windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE,
 		nil,
 		windows.OPEN_EXISTING,
 		0, nil)
@@ -66,24 +66,24 @@ func (a *sysATA) Close() error {
 }
 
 type _ATA_PASS_THROUGH_EX struct {
-	Length			uint16
-	AtaFlags			uint16
-	PathId			uint8
-	TargetId			uint8
-	Lun				uint8
-	ReservedAsUchar	uint8
-	DataTransferLength	uint32
-	TimeOutValue		uint32
-	ReservedAsUlong	uint32
-	DataBufferOffset	_ULONG_PTR
-	PreviousTaskFile	[8]uint8
-	CurrentTaskFile	[8]uint8
+	Length             uint16
+	AtaFlags           uint16
+	PathId             uint8
+	TargetId           uint8
+	Lun                uint8
+	ReservedAsUchar    uint8
+	DataTransferLength uint32
+	TimeOutValue       uint32
+	ReservedAsUlong    uint32
+	DataBufferOffset   _ULONG_PTR
+	PreviousTaskFile   [8]uint8
+	CurrentTaskFile    [8]uint8
 }
 
 const (
 	_ATA_FLAGS_DRDY_REQUIRED = 0x01
-	_ATA_FLAGS_DATA_IN =0x02
-	_ATA_FLAGS_DATA_OUT = 0x04
+	_ATA_FLAGS_DATA_IN       = 0x02
+	_ATA_FLAGS_DATA_OUT      = 0x04
 	_ATA_FLAGS_48BIT_COMMAND = 0x08
 
 	_IOCTL_ATA_PASS_THROUGH = 0x04D02C
@@ -98,7 +98,7 @@ func (c *Command28) toNT(flags uint16, buf []byte) (send []byte, err error) {
 	// TODO _ATA_FLAGS_DRDY_REQUIRED?
 	pte.AtaFlags = flags
 	pte.DataTransferLength = uint32(len(buf))
-	pte.TimeOutValue = ^uint32(0)		// TODO
+	pte.TimeOutValue = ^uint32(0) // TODO
 	pte.DataBufferOffset = _ULONG_PTR(sizeofPTE)
 	pte.CurrentTaskFile[0] = c.Features
 	pte.CurrentTaskFile[1] = c.Count
@@ -121,7 +121,7 @@ func (c *Command28) toNTRead(outbuf []byte) (send []byte, recv []byte, err error
 	if err != nil {
 		return nil, nil, err
 	}
-	recv = make([]byte, sizeofPTE + len(outbuf))
+	recv = make([]byte, sizeofPTE+len(outbuf))
 	return send, recv, nil
 }
 
@@ -130,7 +130,7 @@ func (c *Command28) toNTWrite(inbuf []byte) (send []byte, recv []byte, err error
 	if err != nil {
 		return nil, nil, err
 	}
-	send = make([]byte, len(s) + len(inbuf))
+	send = make([]byte, len(s)+len(inbuf))
 	copy(send[:len(s)], s)
 	copy(send[len(s):], inbuf)
 	recv = make([]byte, sizeofPTE)
@@ -138,9 +138,9 @@ func (c *Command28) toNTWrite(inbuf []byte) (send []byte, recv []byte, err error
 }
 
 type out struct {
-	recv		[]byte
-	pte		_ATA_PASS_THROUGH_EX
-	resp		*Response28
+	recv []byte
+	pte  _ATA_PASS_THROUGH_EX
+	resp *Response28
 }
 
 func (a *sysATA) perform(send []byte, recv []byte, err error) (o *out, err error) {
@@ -180,9 +180,9 @@ func (a *sysATA) perform(send []byte, recv []byte, err error) (o *out, err error
 	resp.Status = pte.CurrentTaskFile[6]
 
 	return &out{
-		recv:		recv[pte.DataBufferOffset:],
-		pte:		pte,
-		resp:		resp,
+		recv: recv[pte.DataBufferOffset:],
+		pte:  pte,
+		resp: resp,
 	}, nil
 }
 
